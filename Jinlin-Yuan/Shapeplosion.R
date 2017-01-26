@@ -1,9 +1,11 @@
+
 ### Initial analysis
 
-shape <- read.csv("/Users/apple/Desktop/MAP/Original.csv",
+shape <- read.csv("C:/Users/hejinlin/Desktop/Original.csv",
                   stringsAsFactors = F)
 
-shape_untimed = shape[shape$requestedTime==0,]
+shape_untime = shape[shape$requestedTime==0,]
+shape_untimed = shape_untime[shape_untime$timeUsed!=0,]
 name = names(shape_untimed)
 selected = shape_untimed[,c("numShapes","numErrors")]
 a = selected[,c("numShapes")]
@@ -66,7 +68,7 @@ ____________________________________________________________________
 ## Extracting additional variables
 "Music" "music" "song" "Song" "MUSICON MUSIC"
 v1_music <- shape[tolower(strtrim(shape$v1label,2))=="mu" |
-                   tolower(strtrim(shape$v1label,2))=="so",]
+                    tolower(strtrim(shape$v1label,2))=="so",]
 
 "gender" "gender order" "sex" "male" "female" "male athlete" 
 "f gender" "gender female" 
@@ -80,10 +82,55 @@ v1_gender <- shape[tolower(strtrim(shape$v1label,3))=="gen" |
 "Nondominant hand" "Dominant hand" "DOMstep" "DOM Step" 
 v1_dominant <-shape[tolower(strtrim(shape$v1label,3))=="dom" | 
                       tolower(strtrim(shape$v1label,4))=="hand" |
-                       tolower(strtrim(shape$v1label,3))=="non" |
-                       tolower(strtrim(shape$v1label,6))=="step d",]
+                      tolower(strtrim(shape$v1label,3))=="non" |
+                      tolower(strtrim(shape$v1label,6))=="step d",]
 
 unique(v1_music$v1label)
+
+_________________________________________________________________________________
+## Draw graphs (untimed data, two ind variables, mplot, compared with smaller samples
+# with one additional variable "music")
+library(ggplot2)
+library(mosaic)
+mplot(shape_untimed_truncate)
+shape_untimed_sec <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)
+shape_untimed_sec$numShapes = as.factor(shape_untimed_sec$numShapes)
+shape_untimed_sec$timerDisplay = as.factor(shape_untimed_sec$timerDisplay)
+shape_untimed_sec$matchingScheme = as.factor(shape_untimed_sec$matchingScheme)
+shape_untimed_truncate = shape_untimed_sec[shape_untimed_sec$TimeUsedSec<=1000,]
+
+music_untimed <- shape_untimed_sec[tolower(strtrim(shape_untimed_sec$v1label,2))=="mu" |
+                                     tolower(strtrim(shape_untimed_sec$v1label,2))=="so",]
+
+#1 Log(Timeused:truncated) ~ numShapes, colored by MatchingScheme
+plot1 = ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot2 = ggplot(data = music_untimed, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+
+#2 Log(Timeused) ~ numShapes, colored by Timer
+plot3=ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=timerDisplay) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot4=ggplot(data = music_untimed, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=timerDisplay) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+
+
+#3 Log(timeused) ~ matching scheme, colored by Timer
+plot5=ggplot(data = shape_untimed_truncate, aes(x=matchingScheme, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=timerDisplay) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot6=ggplot(data = music_untimed, aes(x=matchingScheme, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=timerDisplay) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+
+#4 Log(timeused) ~ matching scheme, colored by numShapes
+plot7=ggplot(data = shape_untimed_truncate, aes(x=matchingScheme, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=numShapes) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot8=ggplot(data = music_untimed, aes(x=matchingScheme, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=numShapes) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+
+#5 Log(timeused) ~ timerDisplay, colored by matchingScheme
+plot9=ggplot(data = shape_untimed_truncate, aes(x=timerDisplay, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot10=ggplot(data = music_untimed, aes(x=timerDisplay, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+
+#6 Log(timeused) ~ timerDisplay, colored by numShapes
+plot11= ggplot(data = shape_untimed_truncate, aes(x=timerDisplay, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=numShapes) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot12= ggplot(data = music_untimed, aes(x=timerDisplay, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=numShapes) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+
+#7 Log(timeused) ~ numShapes, colored by matchingScheme, facet by timerDisplay
+plot13=ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=timeUsed)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
+plot14=ggplot(data = music_untimed, aes(x=numShapes, y=timeUsed)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
+grid.arrange(plot13,plot14,ncol=2)
 ## Question
 1.get rid of the entries? 
 MUSIC on & off 

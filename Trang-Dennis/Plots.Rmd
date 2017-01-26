@@ -15,6 +15,13 @@ library(data.table)
 tangrams_data <- fread("http://statgames.tietronix.com/tangrams/webreporter.php?game=tangrams&groupID=&winlose=both&random=false&rows=&type=csv")
 tangrams_data$HintsEnabled <- as.factor(tangrams_data$HintsEnabled)
 tangrams_data$HintsUsed <- as.factor(tangrams_data$HintsUsed)
+tangrams_data$Won <- as.factor(tangrams_data$Won)
+tangrams_data$TimerHint <- as.factor(tangrams_data$TimerHint)
+tangrams_data$TimerDisplay <- as.factor(tangrams_data$TimerDisplay)
+tangrams_data$RequestedTime <- as.numeric(tangrams_data$RequestedTime)
+tangrams_data$NumClicks <- as.numeric(tangrams_data$NumClicks)
+tangrams_data$TimeUsed <- as.numeric(tangrams_data$TimeUsed)
+tangrams_data$NumShapes <- as.numeric(tangrams_data$NumShapes)
 ```
 
 First, we want to take an initial look on the relationship between hint used and time. 
@@ -59,16 +66,17 @@ We notice that there are significant data entries including gender information. 
 # sex in gender
 ```{r}
 tangram <- tangramfilter
-gen_tangram1 <- tangram[tolower(strtrim(tangram$Factor1,3)) == "gen",]
+gen <- c("gen","sex")
+gen_tangram1 <- tangram[tolower(strtrim(tangram$Factor1,3)) %in% gen,]
 gen_tangram1$gender[tolower(strtrim(gen_tangram1$Level1,1)) == "m" | tolower(strtrim(gen_tangram1$Level1,1)) == "h"] <- "M"
 gen_tangram1$gender[tolower(strtrim(gen_tangram1$Level1,1)) == "f" | tolower(strtrim(gen_tangram1$Level1,2)) == "mu"] <- "F"
 
-gen_tangram2 <- tangram[tolower(strtrim(tangram$Factor2,3)) == "gen",]
+gen_tangram2 <- tangram[tolower(strtrim(tangram$Factor2,3)) %in% gen,]
 gen_tangram2$gender[tolower(strtrim(gen_tangram2$Level2,1)) == "m" | tolower(strtrim(gen_tangram2$Level2,1)) == "h"] <- "M"
 gen_tangram2$gender[tolower(strtrim(gen_tangram2$Level2,1)) == "f" | tolower(strtrim(gen_tangram2$Level2,2)) == "mu"] <- "F"
 
 
-gen_tangram3 <- tangram[tolower(strtrim(tangram$Factor3,3)) == "gen",]
+gen_tangram3 <- tangram[tolower(strtrim(tangram$Factor3,3)) %in% gen,]
 gen_tangram3$gender[tolower(strtrim(gen_tangram3$Level3,1)) == "m" | tolower(strtrim(gen_tangram3$Level3,1)) == "h"] <- "M"
 gen_tangram3$gender[tolower(strtrim(gen_tangram3$Level3,1)) == "f" | tolower(strtrim(gen_tangram3$Level3,2)) == "mu"] <- "F"
 

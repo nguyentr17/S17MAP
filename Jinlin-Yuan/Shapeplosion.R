@@ -8,7 +8,7 @@ shape_untime = shape[shape$requestedTime==0,]
 shape_untimed = shape_untime[shape_untime$timeUsed!=0,]
 name = names(shape_untimed)
 selected = shape_untimed[,c("numShapes","numErrors")]
-a = selected[,c("numShapes")]
+
 
 tapply(shape_untimed$logTimeUsed, shape_untimed$shapesMatched)
 #### 
@@ -131,6 +131,11 @@ plot12= ggplot(data = music_untimed, aes(x=timerDisplay, y=TimeUsedSec)) + geom_
 plot13=ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=timeUsed)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
 plot14=ggplot(data = music_untimed, aes(x=numShapes, y=timeUsed)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
 grid.arrange(plot13,plot14,ncol=2)
+
+ggplot(data = shape_untimed, aes(x=numShapes, y=numErrors)) + geom_boxplot()  + aes(colour=matchingScheme) +  facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
+
+mean(shape_untimed_sec$TimeUsedSec)
+mean(music_untimed$TimeUsedSec)
 ## Question
 1.get rid of the entries? 
 MUSIC on & off 

@@ -2,9 +2,7 @@
 title: "Graphical Comparison"
 author: "He Jinlin & Wang Yuan"
 date: "January 26, 2017"
-output:
-  pdf_document: default
-  html_document: default
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -32,10 +30,9 @@ library(gridExtra)
 
 1. Loading dataset from the website: 
 ```{r}
-#install.packages("data.table")
-#library(data.table)
-shape <- read.csv("~/Desktop/MAP/Original.csv", stringsAsFactors = F)
-#shape <- fread("http://kuiper.pearsoncmg.com/shapesplosion/webreporter.php?game=PerfectionFlash&groupID=&winlose=both&random=false&rows=&type=csv", stringsAsFactors = F)
+library(data.table)
+#shape <- read.csv("~/Desktop/MAP/Original.csv", stringsAsFactors = F)
+shape <- fread("http://kuiper.pearsoncmg.com/shapesplosion/webreporter.php?game=PerfectionFlash&groupID=&winlose=both&random=false&rows=&type=csv")
 ```
 2. Using data with unlimited playtime yet playtime > 0:
 ```{r}
@@ -43,6 +40,15 @@ shape_untime = shape[shape$requestedTime==0,]
 shape_untimed = shape_untime[shape_untime$timeUsed!=0,]
 ```
 3. For all the plots below, TimeUsed is computed in terms of seconds. It is also logged during plotting to highlight the difference in comparison. <br />
+```{r echo=FALSE}
+shape_untimed$numShapes = as.factor(shape_untimed$numShapes)
+shape_untimed$matchingScheme = as.factor(shape_untimed$matchingScheme)
+shape_untimed$requestedTime = as.factor(shape_untimed$requestedTime)
+shape_untimed$timeUsed = as.numeric(shape_untimed$timeUsed)
+shape_untimed$timerDisplay = as.factor(shape_untimed$timerDisplay)
+shape_untimed$numErrors = as.numeric(shape_untimed$numErrors)
+
+```
 
 ```{r}
 shape_untimed_sec <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)

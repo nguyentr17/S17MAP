@@ -37,3 +37,23 @@ level_gen_fun <- function(x, y) {
 tangram$factor_gender <- mapply(ismatch, gen, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)
 tangram$level_gender <- mapply(level_gen_fun, tangram$factor_gender, 1:nrow(tangram), SIMPLIFY = TRUE)
 
+
+### Stem major
+
+
+stem <- c("stem")
+stem_Y <- c("^y")
+stem_N <- c("^n")
+tangram$factor_STEM <- mapply(ismatch, stem, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)
+level_stem_fun <- function(x, y) {
+  return (ifelse(x == 0, -1, 
+                 ifelse(grepl(paste(stem_Y, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                        "Y", 
+                        ifelse(grepl(paste(stem_N, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                               "N",-2))))
+}
+
+tangram$level_stem <- mapply(level_stem_fun, tangram$factor_STEM, 1:nrow(tangram), SIMPLIFY = TRUE)
+
+
+

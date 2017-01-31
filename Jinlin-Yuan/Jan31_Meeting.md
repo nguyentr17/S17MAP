@@ -10,3 +10,20 @@
 - When pulling data from the website:\
 	Let n be the last row of the existing data, then be sure to download from the n+1 row of the new dataset without bothering going through the entire dataset over and over. \
 	Make sure the new data set is clean as the old one, then add the new one to the old one to create a whole new dataset.}
+	
+- Choose the "begin with" groupID
+
+- Use the updated code to clean/filter data
+
+- Show the sample size of the data as an output
+
+- Overlap the original boxplot with a jitter plot
+
+- Linear regression numShapes vs. timeUsed, and then see what happens if we break down by matchingScheme
+
+- Add a p-value, see how p-value changes when sample size/... change
+
+- see if there is a significant different between gender in all groups with n <= 50 or so. so is there a difference in gender or not?
+
+
+dplyr/tapply

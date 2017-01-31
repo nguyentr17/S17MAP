@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "### R=script      : factor-filter.R\n### Description   : This R script is used to create solid factor columns and clean corresponding levels.\n### In-the-context: It will be used for analysis and filtering in Shiny app.\n\n### 1. Factor to be filtered: GENDER\n### A set of criteria for regular expressions/ key patterns\ngen = c(\"^gen\",\"^sex\")\ngen_male = c(\"^m\",\"^h\")\ngen_female = c(\"^f\", \"^mu\")\n\n### Supporting functions\n### ismatch\n### @input: cond: a vector of key patterns (e.g. gen)\n###         x, y, z: 3 columns to look for key\n### @return: 0 if no match\n###          index of the factor (1, 2, 3() if there is match\nismatch <- function(cond, x, y, z) {\n  x <- grep(paste(cond, collapse = \"|\"), c(x, y, z), ignore.case = T)\n  return (ifelse(length(x), x[1], 0))\n}\n\n### level_gen_fun\n### @input: x is the col index (given by factor_gender)\n###         y is the row index\n### @return: -1 if no gender factor indicated\n###          -2 if gender factor indicated but level_gen key patterns not matched (require future manual check)\n###           M/F\n### @note: this function is specific to gender only. Needs to think about how to generalize it. \nlevel_gen_fun <- function(x, y) {\n  return (ifelse(x == 0, -1, \n                 ifelse(grepl(paste(gen_female, collapse = \"|\"),tangram[y,x+4], ignore.case = T),\n                        \"F\", \n                        ifelse(grepl(paste(gen_male, collapse = \"|\"),tangram[y,x+4], ignore.case = T),\n                               \"M\",-2))))\n}\n\ntangram$factor_gender <- mapply(ismatch, gen, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)\ntangram$level_gender <- mapply(level_gen_fun, tangram$factor_gender, 1:nrow(tangram), SIMPLIFY = TRUE)\n\n",
+    "created" : 1485904347356.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3838668396",
+    "id" : "A2803523",
+    "lastKnownWriteTime" : 1485904370,
+    "last_content_update" : 1485904370647,
+    "path" : "~/Documents/GRIN17/S17MAP/Trang-Dennis/factor-filter.R",
+    "project_path" : "factor-filter.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

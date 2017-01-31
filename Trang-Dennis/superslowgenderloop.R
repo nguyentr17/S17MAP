@@ -1,5 +1,5 @@
 #about gender 
-
+# 
 length = nrow(tangram)
 tangram <- tangramfilter
 tangram$factor_gender <- 0

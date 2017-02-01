@@ -1,8 +1,10 @@
 Weekly Task Log
 
 Week2(Jan 31 2017)
+#Use the updated code to filter data by factor (e.g. gender)
 #Compare same variable ID but different group ID to see how different small groups can get different mean/p-value/linear models
 	*use 'startWith' to extract group ID
+	(e.g. #see if there is a significant difference between gender in all groups with n <= 50 or so. so is there a difference in 			gender or not)
 #Update filter no. 5 from Dennis-Trang code
 #indicate sample size on graph
 #overlapping jitter plot and boxplot (transparency)
@@ -11,3 +13,4 @@ Week2(Jan 31 2017)
 #sliderbar for range to include/exclude outlier
 #sliderbar to customize sample size
 #Change factor-level names: matchingscheme
+#Linear regression numShapes vs. timeUsed, and then see what happens if we break down by matchingScheme. Add p-value and see how p-value 	changes when sample-size/ w/wo matching / ... change

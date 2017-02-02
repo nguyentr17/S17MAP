@@ -1,17 +1,98 @@
-
-### Initial analysis
-
-shape <- read.csv("C:/Users/hejinlin/Desktop/Original.csv",
-                  stringsAsFactors = F)
-
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(mosaic)
+### Getting data without time limit (Sample A)
+library(data.table)
+shape <- fread("http://kuiper.pearsoncmg.com/shapesplosion/webreporter.php?game=PerfectionFlash&groupID=&winlose=both&random=false&rows=&type=csv")
 shape_untime = shape[shape$requestedTime==0,]
 shape_untimed = shape_untime[shape_untime$timeUsed!=0,]
-name = names(shape_untimed)
+
+
+shape_untimed$numShapes = as.factor(shape_untimed$numShapes)
+shape_untimed$matchingScheme = as.factor(shape_untimed$matchingScheme)
+shape_untimed$requestedTime = as.factor(shape_untimed$requestedTime)
+shape_untimed$timeUsed = as.numeric(shape_untimed$timeUsed)
+shape_untimed$timerDisplay = as.factor(shape_untimed$timerDisplay)
+shape_untimed$numErrors = as.numeric(shape_untimed$numErrors)
+
+shape_untimed_sec <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)
+
+### Further cleaning of v1label = gender
+gender <- filter(shape_untimed, tolower(strtrim(shape_untimed$v1label,3))=="gen" |
+                   tolower(strtrim(shape_untimed$v1label,3))=="sex" |
+                   tolower(strtrim(shape_untimed$v1label,4))=="male" |
+                   tolower(strtrim(shape_untimed$v1label,1))=="f")
+#delete specific rows
+case <- (tolower(strtrim(gender$v1value,1)) == "m") & 
+  (tolower(strtrim(gender$v2value,1)) =="f")
+gender1 <- gender[(strtrim(gender$v1value,1) != "1") &
+                    (gender$v1value != "2") &
+                    (gender$v1label != "Gender\rOrder") &
+                    (gender$v1label != "female\rorder") &
+                    (gender$v1value != "0") &
+                    (tolower(gender$v1value) != "morf") &
+                    (gender$studentID != "mb") &
+                    (gender$studentID != "31207") &
+                    (gender$v1value != "cat") &
+                    (gender$studentID != "3659") &
+                    (tolower(gender$v1value) != "attempt") &
+                    (!case),]
+
+
+cond <- tolower(strtrim(shape_untimed$v1value,1))=="m" &
+  tolower(strtrim(shape_untimed$v2value,1))=="f"
+
+yuan_gender <- filter(shape_untimed, (tolower(strtrim(shape_untimed$v1label,3))=="gen" |
+                                        tolower(strtrim(shape_untimed$v1label,3))=="sex" | 
+                                        tolower(strtrim(shape_untimed$v1label,4))=="male" | 
+                                        tolower(strtrim(shape_untimed$v1label,1))=="f" ) &
+                        
+                        strtrim(shape_untimed$v1value,1) != 2 & 
+                        strtrim(shape_untimed$v1value,1) != 1 &
+                        strtrim(shape_untimed$v1value,1) != 0 &
+                        
+                        shape_untimed$v1value != "MorF" &
+                        shape_untimed$v1value != "cat" &
+                        shape_untimed$v1value != "Yes" &
+                        shape_untimed$v1value != "Attempt" & !cond)
+
+#identify all entries with v1value starts with "M"/"F"
+#create a new column indicating 1/0 Male/Female
+
+gender1 <- mutate(gender1, 
+                  gender = as.factor(ifelse(
+                    pmax((tolower(strtrim(gender1$v1label,1)) == "m"), (tolower(strtrim(gender1$v1value,1)) =="m")), 
+                    1, 
+                    ifelse(pmax(tolower(strtrim(gender1$v1label,1)) == "f",
+                                (tolower(strtrim(gender1$v1value,1)) =="f")), 
+                           0, 
+                           NA))))
+
+#identifying most played groups:
+tb =as.data.frame(table(gender1$groupID))
+tb <- tb[order(-tb$Freq),]
+tb = tb[tb$Freq >25,]
+[1] HJ375F14  MSP2013   MAT336    HJ190F14  stats2    MAED550   MAT336S14 336S14    mth22601  MATH22015 MAT336S15
+[12] MATH22018 USCOTS15  mth32602  mth22602  mth32601 
+
+#comparing two most played groups (104 vs 79)
+HJ375F14 =gender1[gender1$groupID=="HJ375F14",]
+MSP2013=gender1[gender1$groupID=="MSP2013",]
+
+ggplot(data = HJ375F14, aes(x=matchingScheme, y=timeUsed)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="none") + labs(title="") 
+ggplot(data = MSP2013, aes(x=matchingScheme, y=timeUsed)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="none") + labs(title="") 
+
+model_gp_1_1 = lm(timeUsed~gender, data = HJ375F14)
+model_gp_1_2 = lm(timeUsed~gender + matchingScheme, data = HJ375F14)
+model_gp_2_1 = lm(timeUsed~gender, data = MSP2013)
+model_gp_2_2 = lm(timeUsed~gender + matchingScheme, data = MSP2013)
+
+### Potential filters
 selected = shape_untimed[,c("numShapes","numErrors")]
+mplot(HJ375F14)
 
-
-tapply(shape_untimed$logTimeUsed, shape_untimed$shapesMatched)
-#### 
+#### raw info about data
 table(shape$numShapes) #fine
 15    18    21    24 
 5368  1992  6792 24196 
@@ -49,6 +130,7 @@ table(shape$timeUsed)#Need to eliminate the
 shape_untimed = shape_untime[shape_untime$timeUsed!=0,]
 
 freq2 = count_(shape,"v2label")
+
 ####Single-factor Plot
 # Response 1: errors
 boxplot(shape_untimed$numErrors~shape_untimed$proximityValue)
@@ -72,10 +154,14 @@ v1_music <- shape[tolower(strtrim(shape$v1label,2))=="mu" |
 
 "gender" "gender order" "sex" "male" "female" "male athlete" 
 "f gender" "gender female" 
-v1_gender <- shape[tolower(strtrim(shape$v1label,3))=="gen" |
-                     tolower(strtrim(shape$v1label,3))=="sex" |
-                     tolower(strtrim(shape$v1label,4))=="male" |
-                     tolower(strtrim(shape$v1label,1))=="f",]
+v1_gender = shape_untimed[tolower(strtrim(shape_untimed$v1label,3))=="gen" |
+                            tolower(strtrim(shape_untimed$v1label,3))=="sex" |
+                            tolower(strtrim(shape_untimed$v1label,4))=="male" |
+                            tolower(strtrim(shape_untimed$v1label,1))=="f",]
+gender <- filter(shape_untimed, tolower(strtrim(shape_untimed$v1label,3))=="gen" |
+                   tolower(strtrim(shape_untimed$v1label,3))=="sex" |
+                   tolower(strtrim(shape_untimed$v1label,4))=="male" |
+                   tolower(strtrim(shape_untimed$v1label,1))=="f")
 "dominant" "DOM" "DOMHAND" "DomHand" "hand" "DOMINANT" "Hand" "Dominant"
 "HAND" "Step dominant" "non dominant" "non-dominant hand"
 "NONDOMINANT" "Nondominant" "domhand" "dominant hand" "dominhand" 

@@ -8,7 +8,6 @@ shape <- fread("http://kuiper.pearsoncmg.com/shapesplosion/webreporter.php?game=
 shape_untime = shape[shape$requestedTime==0,]
 shape_untimed = shape_untime[shape_untime$timeUsed!=0,]
 
-
 shape_untimed$numShapes = as.factor(shape_untimed$numShapes)
 shape_untimed$matchingScheme = as.factor(shape_untimed$matchingScheme)
 shape_untimed$requestedTime = as.factor(shape_untimed$requestedTime)
@@ -69,19 +68,39 @@ gender1 <- mutate(gender1,
                            0, 
                            NA))))
 
+gender2 <- na.omit(gender1)
+
 #identifying most played groups:
-tb =as.data.frame(table(gender1$groupID))
+tb <- as.data.frame(table(gender1$groupID))
 tb <- tb[order(-tb$Freq),]
-tb = tb[tb$Freq >25,]
-[1] HJ375F14  MSP2013   MAT336    HJ190F14  stats2    MAED550   MAT336S14 336S14    mth22601  MATH22015 MAT336S15
-[12] MATH22018 USCOTS15  mth32602  mth22602  mth32601 
+tb <- tb[tb$Freq > 25,]
+
+#Select groups that are under size 50
+tb2 <- filter(tb, tb$Freq >= 25 & tb$Freq <= 50)
+
+#Create a vector of groupID's whose size is between 25 and 50
+selected_groupID <- tb2$Var1
+
+stats2_female <- gender2[gender2$groupID == "stats2" & gender2$gender == 0,]$timeUsed
+stats2_male <- gender2[gender2$groupID == "stats2" & gender2$gender == 1,]$timeUsed
+
+
+
+#Result of tb$Var1
+
+#[1] HJ375F14  MSP2013   MAT336    HJ190F14  stats2    MAED550   MAT336S14 336S14    mth22601  MATH22015 MAT336S15
+#[12] MATH22018 USCOTS15  mth32602  mth22602  mth32601 
+
 
 #comparing two most played groups (104 vs 79)
 HJ375F14 =gender1[gender1$groupID=="HJ375F14",]
 MSP2013=gender1[gender1$groupID=="MSP2013",]
 
-ggplot(data = HJ375F14, aes(x=matchingScheme, y=timeUsed)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="none") + labs(title="") 
-ggplot(data = MSP2013, aes(x=matchingScheme, y=timeUsed)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="none") + labs(title="") 
+# Added sample size (# of observations to the graph)
+ggplot(data = HJ375F14, aes(x=matchingScheme, y=timeUsed)) + geom_boxplot()  + 
+  aes(colour=gender) + theme(legend.position="none") + labs(title= paste("n =", dim(HJ375F14)[1])) 
+ggplot(data = MSP2013, aes(x=matchingScheme, y=timeUsed)) + geom_boxplot()  +
+  aes(colour=gender) + theme(legend.position="none") + labs(title= paste("n =", dim(MSP2013)[1])) 
 
 model_gp_1_1 = lm(timeUsed~gender, data = HJ375F14)
 model_gp_1_2 = lm(timeUsed~gender + matchingScheme, data = HJ375F14)

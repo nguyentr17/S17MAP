@@ -79,11 +79,13 @@ tb <- tb[tb$Freq > 25,]
 tb2 <- filter(tb, tb$Freq >= 25 & tb$Freq <= 50)
 
 #Create a vector of groupID's whose size is between 25 and 50
-selected_groupID <- tb2$Var1
+selected_groupID <- as.character(tb2$Var1)
+
+
+for 
 
 stats2_female <- gender2[gender2$groupID == "stats2" & gender2$gender == 0,]$timeUsed
 stats2_male <- gender2[gender2$groupID == "stats2" & gender2$gender == 1,]$timeUsed
-
 
 
 #Result of tb$Var1

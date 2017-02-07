@@ -15,7 +15,7 @@ shape_untimed$timeUsed = as.numeric(shape_untimed$timeUsed)
 shape_untimed$timerDisplay = as.factor(shape_untimed$timerDisplay)
 shape_untimed$numErrors = as.numeric(shape_untimed$numErrors)
 
-shape_untimed_sec <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)
+shape_untimed <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)
 
 ### Further cleaning of v1label = gender
 gender <- filter(shape_untimed, tolower(strtrim(shape_untimed$v1label,3))=="gen" |
@@ -71,21 +71,35 @@ gender1 <- mutate(gender1,
 gender2 <- na.omit(gender1)
 
 #identifying most played groups:
-tb <- as.data.frame(table(gender1$groupID))
+tb <- as.data.frame(table(gender2$groupID))
 tb <- tb[order(-tb$Freq),]
 tb <- tb[tb$Freq > 25,]
 
 #Select groups that are under size 50
-tb2 <- filter(tb, tb$Freq >= 25 & tb$Freq <= 50)
+tb2 <- filter(tb, tb$Freq >= 5 &tb$Freq <= 50)
 
 #Create a vector of groupID's whose size is between 25 and 50
 selected_groupID <- as.character(tb2$Var1)
 
 
-for 
-
-stats2_female <- gender2[gender2$groupID == "stats2" & gender2$gender == 0,]$timeUsed
-stats2_male <- gender2[gender2$groupID == "stats2" & gender2$gender == 1,]$timeUsed
+#Hypothesis testing function
+par(mar=c(1,1,1,1))
+par(mfrow = c(3,6))
+groupName <- c()
+pvalues <- c()
+for (i in 1:length(selected_groupID)) {
+  female <- gender2[gender2$groupID == selected_groupID[i] & gender2$gender == 0,]$TimeUsedSec
+  male <- gender2[gender2$groupID == selected_groupID[i] & gender2$gender == 1,]$TimeUsedSec
+  if (length(female) > 1 & length(male) > 1) {
+    groupName <- cbind(groupName, selected_groupID[i])
+    p <- round(t.test(female, male)$p.value, digits = 3)
+    pvalues <- cbind(pvalues, p)
+    
+    data1 <- gender2[gender2$groupID == selected_groupID[i],]
+    boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n =", dim(data1)[1], ", p-value = ", p),
+            xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+  }
+}
 
 
 #Result of tb$Var1

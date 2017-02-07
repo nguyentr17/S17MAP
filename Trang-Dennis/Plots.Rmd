@@ -6,7 +6,8 @@ output: html_document
 ---
 
 First, we want to import real time data from website. For the future convinence, we change the type of the column into factor and some into numeric. 
-```{r,, message=FALSE, warning=FALSE}
+#if not install
+```{r, message=FALSE, warning=FALSE}
 require(treemap)
 require(dplyr) 
 require(mosaic)
@@ -34,6 +35,7 @@ We do notice that there is several outliners in both facets. It may be caused by
 ```{r}
 tangramfilter <- tangrams_data[tangrams_data$TimeUsed < 3600,]
 tangramfilter <- tangramfilter[tangramfilter$TimeUsed > 0,]
+tangramfilter$TimeUsed <- log(tangramfilter$TimeUsed )
 ggplot(data = tangramfilter, aes(x=interaction(HintsEnabled,HintsUsed,lex.order = TRUE), y=TimeUsed)) + geom_boxplot()  + theme(legend.position="none") + labs(title="Boxplot for filtered data")+xlab("HintsEnabled.HintsUsed")  
 ```
 
@@ -127,7 +129,18 @@ gen_tangram_count <- count_(gen_tangram_statsgame,"PuzzleName")
 gen_tangram_count <- gen_tangram_count[order(-gen_tangram_count$n),]
 ggplot(gen_tangram_statsgame[gen_tangram_statsgame$PuzzleName %in% head(gen_tangram_count$PuzzleName,5),], aes(fill = level_gender, y = TimeUsed, x = PuzzleName)) +
   geom_bar(position = "dodge", stat = "identity")
+```
 
+```{r}
+gen_won_count <- as.data.frame(table(gen_tangram$level_gender,gen_tangram$Won))
+
+ggplot(gen_tangram, aes(fill = Won, y = TimeUsed, x = level_gender)) +
+  geom_bar(position = "dodge", stat = "identity")
+
+ggplot(gen_won_count, aes(x=Var1, y=Freq,fill=Var2)) + geom_bar(stat="identity")
+
+gen_won_res_count <-  as.data.frame(table(gen_tangram[gen_tangram$RequestedTime != 0,]$level_gender,gen_tangram[gen_tangram$RequestedTime != 0,]$Won))
+ggplot(gen_won_res_count, aes(x=Var1, y=Freq,fill=Var2)) + geom_bar(stat="identity")
 ```
 
 #STEM MAJOR
@@ -164,9 +177,21 @@ ggplot(stem_tangram_statsgame[stem_tangram_statsgame$PuzzleName %in% head(stem_t
 ```
 
 
+```{r}
 
+factorlist <- as.data.frame(table(c(tangramfilter$Factor1,tangramfilter$Factor2, tangramfilter$Factor3)))
+View(factorlist)
+
+```
 Our Concerns:
 In terms of data quality
     a. The value of the factor and level is open ended as well as seperate. It is hard to identify the key information in one data entry. 
     b. Lots of data entry contain some sort of typo, which may impose some difficulties in conducting the analysis.
     
+```{r}
+
+ggplot(stem_tangram_statsgame[stem_tangram_statsgame$PuzzleName %in% head(stem_tangram_count$PuzzleName,5),], aes(fill = level_stem, y = TimeUsed, x = PuzzleName)) +
+  geom_bar(position = "dodge", stat = "identity")
+
+
+```

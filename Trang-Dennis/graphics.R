@@ -17,4 +17,26 @@ gen_tangram_norestriction <- gen_tangram[gen_tangram$RequestedTime == 0,]
 ggplot(gen_tangram_norestriction, aes(x = level_gender, y = TimeUsed_log))
 mplot(gen_tangram_norestriction)
 
-write.csv(tangram, "tangram_updated.csv")
+
+### Requested Time
+devtools::install_github("ropensci/plotly")
+library(plotly)
+library(shiny)
+# all gender dataset
+plot_ly() %>%
+  add_histogram(gen_tangram[gen_tangram$level_gender == "F",]$TimeUsed_log) %>%
+  add_histogram(gen_tangram[gen_tangram$level_gender == "M",]$TimeUsed_log) %>%
+  layout(barmode = "overlay")
+# restriction
+plot_ly() %>%
+  add_histogram(gen_tangram_norestriction[gen_tangram_norestriction$level_gender == "F",]$TimeUsed_log) %>%
+  add_histogram(gen_tangram_norestriction[gen_tangram_norestriction$level_gender == "M",]$TimeUsed_log) %>%
+  layout(barmode = "overlay")
+
+
+# Choose a group study: SECTION6
+gen_tangram_individual <- gen_tangram[gen_tangram$GroupName == "SECTION6",]
+plot_ly() %>%
+  add_histogram(gen_tangram_individual[gen_tangram_individual$level_gender == "F",]$TimeUsed_log) %>%
+  add_histogram(gen_tangram_individual[gen_tangram_individual$level_gender == "M",]$TimeUsed_log) %>%
+  layout(barmode = "overlay")

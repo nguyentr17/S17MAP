@@ -22,11 +22,29 @@ highlight/present examples that might be misleading
 ————
 use 'time per shape'
 
-————
-sliderbar for range to include/exclude outlier
+Create a .rmd file
+In the file, use Untimed data-frame
+Create graphs
+	y-variable: TimePerShape, NumErrorPerShape
+	x-variable: matchingScheme
+	
+	y-variable: TimePerShape, NumErrorPerShape
+	x-variable: matchingScheme
+	color-by  : timerDisplay
+For each graph, create linear regression
+Record coefficients and R^2
+
+Repeat the procedure with filtered data
+Filter data by group ID
+	most represented groupID
+	Grinnell groupID: MAT209, MAT336
+
 
 ————
-sliderbar to customize sample size
+slider bar for range to include/exclude outlier
+
+————
+slider bar to customize sample size
 
 ————
 Change factor-level names: matchingscheme

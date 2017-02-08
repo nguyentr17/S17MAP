@@ -55,5 +55,16 @@ level_stem_fun <- function(x, y) {
 
 tangram$level_stem <- mapply(level_stem_fun, tangram$factor_STEM, 1:nrow(tangram), SIMPLIFY = TRUE)
 
+### 3. Age
+age <- c("^age")
+tangram$factor_age <- mapply(ismatch, age, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)
+level_age_fun <- function(x, y) {
+  return (ifelse(x == 0, -1, 
+                 ifelse(!is.na(as.numeric(tangram[y,2*x+3])), 
+                               as.numeric(tangram[y,2*x+3]),
+                               -2)))
+}
+
+tangram$level_age <- mapply(level_age_fun, tangram$factor_age, 1:nrow(tangram), SIMPLIFY = TRUE)
 
 

@@ -13,8 +13,8 @@ Update filter no. 5 from Dennis-Trang code
 ———— //Check
 indicate sample size on graph
 
-————
-overlapping jitter plot and boxplot (transparency)
+———— //Check but look really ugly
+overlaying jitter plot and boxplot (transparency)
 
 ———— //Check, See Gender_Test.RMD
 highlight/present examples that might be misleading

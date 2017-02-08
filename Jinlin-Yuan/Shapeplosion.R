@@ -109,8 +109,8 @@ for (i in 1:length(selected_groupID)) {
 
 
 #comparing two most played groups (104 vs 79)
-HJ375F14 =gender1[gender1$groupID=="HJ375F14",]
-MSP2013=gender1[gender1$groupID=="MSP2013",]
+HJ375F14 =gender2[gender2$groupID=="HJ375F14",]
+MSP2013=gender2[gender2$groupID=="MSP2013",]
 
 # Added sample size (# of observations to the graph)
 ggplot(data = HJ375F14, aes(x=matchingScheme, y=timeUsed)) + geom_boxplot()  + 
@@ -218,13 +218,15 @@ shape_untimed_sec <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1
 shape_untimed_sec$numShapes = as.factor(shape_untimed_sec$numShapes)
 shape_untimed_sec$timerDisplay = as.factor(shape_untimed_sec$timerDisplay)
 shape_untimed_sec$matchingScheme = as.factor(shape_untimed_sec$matchingScheme)
-shape_untimed_truncate = shape_untimed_sec[shape_untimed_sec$TimeUsedSec<=1000,]
+shape_untimed_truncate <- shape_untimed[shape_untimed$TimeUsedSec<=1000,]
 
 music_untimed <- shape_untimed_sec[tolower(strtrim(shape_untimed_sec$v1label,2))=="mu" |
                                      tolower(strtrim(shape_untimed_sec$v1label,2))=="so",]
 
 #1 Log(Timeused:truncated) ~ numShapes, colored by MatchingScheme
-plot1 = ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot1 < ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=TimeUsedSec)) + 
+  geom_boxplot(size = 1)  + geom_jitter(size = 0.5, alpha = 0.3) + aes(colour=matchingScheme) + 
+  scale_y_log10() + theme(legend.position="top") + labs(title="") 
 plot2 = ggplot(data = music_untimed, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
 
 #2 Log(Timeused) ~ numShapes, colored by Timer

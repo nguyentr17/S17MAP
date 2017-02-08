@@ -28,21 +28,21 @@ We use only untimed data with non-zero time used recording.
 ```{r}
 Original <- read.csv("Original.csv")
 shape <- Original
-shape_untime = shape[shape$requestedTime==0,]
-shape_untimed = shape_untime[shape_untime$timeUsed!=0,]
+shape_untime <- shape[shape$requestedTime==0,]
+shape_untimed <- shape_untime[shape_untime$timeUsed!=0,]
 ```
 
 We also changed some numerical variables to factors since they have only a fixed number of levels. We also changed the unit of the time data from milliseconds to seconds.
 
 ```{r}
-shape_untimed$numShapes = as.factor(shape_untimed$numShapes)
-shape_untimed$matchingScheme = as.factor(shape_untimed$matchingScheme)
-shape_untimed$requestedTime = as.factor(shape_untimed$requestedTime)
-shape_untimed$timeUsed = as.numeric(shape_untimed$timeUsed)
-shape_untimed$timerDisplay = as.factor(shape_untimed$timerDisplay)
-shape_untimed$numErrors = as.numeric(shape_untimed$numErrors)
+shape_untimed$numShapes <- as.factor(shape_untimed$numShapes)
+shape_untimed$matchingScheme <- as.factor(shape_untimed$matchingScheme)
+shape_untimed$requestedTime <- as.factor(shape_untimed$requestedTime)
+shape_untimed$timeUsed <- as.numeric(shape_untimed$timeUsed)
+shape_untimed$timerDisplay <- as.factor(shape_untimed$timerDisplay)
+shape_untimed$numErrors <- as.numeric(shape_untimed$numErrors)
 
-shape_untimed <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)
+shape_untimed <- mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)
 ```
 
 We further trimed the data to include a varible column named Gender. 
@@ -81,29 +81,32 @@ gender2 <- na.omit(gender1)
 
 ```
 
-Then, within the gender data, we identified the group names with sample size between 25 and 50. We make a vector of groupID of our desired groups.
+## Extract GroupID Information
+
+Then, within the gender data, we identified the group names with sample size between 5 and 50. We make a vector of groupID of our desired groups.
 
 ```{r}
 tb <- as.data.frame(table(gender2$groupID))
-tb <- tb[order(-tb$Freq),]
-tb <- tb[tb$Freq > 25,]
 
 ##Select groups that are under size 50
-tb2 <- filter(tb, tb$Freq >= 5 &tb$Freq <= 50)
+tb2 <- tb[tb$Freq >= 5 & tb$Freq <= 50,]
 
 ##Create a vector of groupID's whose size is between 25 and 50
 selected_groupID <- as.character(tb2$Var1)
 ```
 
 
+## T-test and Boxplots
 
-We will write a function to conduct hypothesis tests.
+We will write a function to conduct a two-sided two sample t-test. We use the Student's t.test.
 Our Null Hypothesis is that consider only gender, female and male use same time.
 Our Alternative Hypothesis is that female and male use different times.
+Since t.test does not work when either sample has less than 2 observations, we further filter the groupID so that each group has at least two female and two male observations.
+We will show the boxplot of all groups using gender as the independet variable and time used (seconds) as the dependent variable. In the title of each graph, we will specify individual sample size and p-value. Choose alpha = 0.1, we color the those plots whose group reject the null hypothesis of no difference in green.
 
 ```{r, echo=TRUE}
 par(mar=c(1,1,1,1))
-par(mfrow = c(3,6))
+par(mfrow = c(4,5))
 groupName <- c()
 pvalues <- c()
 for (i in 1:length(selected_groupID)) {
@@ -113,10 +116,31 @@ for (i in 1:length(selected_groupID)) {
     groupName <- cbind(groupName, selected_groupID[i])
     p <- round(t.test(female, male)$p.value, digits = 3)
     pvalues <- cbind(pvalues, p)
-    
     data1 <- gender2[gender2$groupID == selected_groupID[i],]
-    boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p),
-            xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+    if (p < 0.1) {
+    boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+    } else {
+      boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+    }
+    
   }
 }
 ```
+We can also draw a boxplot for the over gender2 data and calculate a p-value as comparison to the group-wise plots and p-values.
+
+```{r}
+female <- gender2[gender2$gender == 0,]$TimeUsedSec
+male <- gender2[gender2$gender == 1,]$TimeUsedSec
+pvl2 <- round(t.test(female, male)$p.value, digits = 3)
+boxplot(TimeUsedSec ~ gender,data=gender2, main=paste("n=", dim(gender2)[1], ", two sided pval=", pvl2), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+```
+
+We can further conduct a one-sided t-test to see whether male time used are significantly more than female time used or otherwise.
+In this case, our Null Hypothesis is that there is no difference between the female and male time used. Our Alternative Hypothesis is that female use less time then male. The p-value is given as follows:
+
+```{r}
+pvl1 <- round(t.test(female, male, alternative="less")$p.value, digits = 3)
+pvl1
+```
+
+Choose alpha = 0.05 for the one-sided t-test, since 0.021 is less than 0.05, we have evidence to reject the null hypothesis and confirm that in the entire gender group, female use less time than male.

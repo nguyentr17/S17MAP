@@ -72,11 +72,11 @@ gender2 <- na.omit(gender1)
 
 #identifying most played groups:
 tb <- as.data.frame(table(gender2$groupID))
-tb <- tb[order(-tb$Freq),]
-tb <- tb[tb$Freq > 25,]
+#tb <- tb[order(-tb$Freq),]
+#tb <- tb[tb$Freq > 25,]
 
 #Select groups that are under size 50
-tb2 <- filter(tb, tb$Freq >= 5 &tb$Freq <= 50)
+tb2 <- filter(tb, tb$Freq >= 5 & tb$Freq <= 50)
 
 #Create a vector of groupID's whose size is between 25 and 50
 selected_groupID <- as.character(tb2$Var1)

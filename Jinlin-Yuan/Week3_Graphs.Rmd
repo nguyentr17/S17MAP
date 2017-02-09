@@ -15,15 +15,12 @@ library(data.table)
 ## Todo:
 Change level name under "MatchingScheme"
 Tidy up variables
-
-## Data Used
-*Sample A:* All entries with unlimited play time  <br />
-*Sample B:* Entries with one additional variable that involves music  (a subset of *Sample A*) <br />
-*Sample C:* Entries identified by the same group ID (a subset of *Sample A*)
-
+* Data to start with:
+  All entries without time limit. 
+  
 * Response Variables
-    + TimeUsed
-    + NumErrors 
+    + timeUsedPerShape
+    + errorPerShape 
 
 * Factors of Interest
     + TimerDisplay 
@@ -50,23 +47,25 @@ shape_untimed$numShapes = as.numeric(shape_untimed$numShapes)
 shape_untimed_sec <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)
 
 ```
-4.Creating a new column with time used per shape:
+4.Creating a new column with time used per shape and error per shape:
 ```{r}
-shape_untimed_sec <- mutate(shape_untimed_sec, timeUsedPerShape=TimeUsedSec / numShapes)
+shape_untimed_sec <- mutate(shape_untimed_sec, timeUsedPerShape=(TimeUsedSec/numShapes))
+shape_untimed_sec <- mutate(shape_untimed_sec,errorPerShape=(as.numeric(numErrors)/as.numeric(numShapes)))
 ```
 ##Realizing there is a significant outlier that used more than 4000 seconds (67 minutes), we decided to remove the single outlier.  <br />
 ```{r echo=TRUE}
 shape_untimed_truncate = shape_untimed_sec[shape_untimed_sec$TimeUsedSec<=4000,]
 ```
-5. Converting the categorical variables such as numShapes in numerical forms into factors
+5.Converting the categorical variables such as numShapes in numerical forms into factors
 ```{r}
 shape_untimed_sec$numShapes = as.factor(shape_untimed_sec$numShapes)
 shape_untimed_sec$timerDisplay = as.factor(shape_untimed_sec$timerDisplay)
 shape_untimed_sec$matchingScheme = as.factor(shape_untimed_sec$matchingScheme)
 shape_untimed_sec$timerDisplay = as.factor(shape_untimed_sec$timerDisplay)
 shape_untimed_sec$numErrors = as.numeric(shape_untimed_sec$numErrors)
-```
 
+```
+3
 Now we subset a *Sample B* out of *Sample A* using the most popular Group IDs:
 **GroupIDs that contain "6002"
 **GroupIDs of MAT 209 class
@@ -74,8 +73,8 @@ Now we subset a *Sample B* out of *Sample A* using the most popular Group IDs:
 ```{r}
 ##groupID_count <- count_(shape_untimed_sec,"groupID")
 group_6002<-shape_untimed_sec[like(groupID,"6002")]
-
-shape_HotchkissStudent16 <-shape_untimed_sec[shape_untimed_sec$groupID=="HotchkissStudent16",]
+MAT_209<-shape_untimed_sec[like(tolower(groupID),"mat209")]
+shape_HotchkissStudent16<-shape_untimed_sec[shape_untimed_sec$groupID=="HotchkissStudent16",]
 
 ##as.data.frame(table($groupID))
 ##tb <- tb[order(-tb$Freq),]
@@ -96,14 +95,28 @@ grid.arrange(plot1, plot2, ncol=2)
 ```
 Findings: *Sample B* has a much smaller sample size than *Sample A*, but have roughly similar results.
 
+Linear Regression:
+```{r}
+mod1 <- lm(timeUsedPerShape ~ matchingScheme, data = shape_untimed_truncate)
+mod2 <- lm(timeUsedPerShape ~ matchingScheme, data = group_6002)
+summary(mod1)
+summary(mod2)
+```
+
 ### 2. Log(timeUsedPerShape ~ TimerDisplay)
 ```{r}
-plot1 = ggplot(data = shape_untimed_truncate, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  +  scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_truncate)[1])) 
+plot3 = ggplot(data = shape_untimed_truncate, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  +  scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_truncate)[1])) 
 
-plot2 = ggplot(data = group_6002, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  + scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(group_6002)[1])) 
-grid.arrange(plot1, plot2, ncol=2)
+plot4 = ggplot(data = group_6002, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  + scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(group_6002)[1])) 
+grid.arrange(plot3, plot4, ncol=2)
 ```
-Findings: Both graphs suggest that timerDisplay corresponds to longer timeUsedPerShape
+```{r}
+mod3 <- lm(timeUsedPerShape ~ timerDisplay, data = shape_untimed_truncate)
+mod4 <- lm(timeUsedPerShape ~ timerDisplay, data = group_6002)
+summary(mod3)
+summary(mod4)
+```
+Findings: Different sample size suggests different results while both p-value are significant. 
 
 ### 3. Log(timeUsedPerShape) ~ TimerDisplay, colored by MatchingScheme 
 **Note: We are still working on the code to nicely juxatpose two graphs together without squeeshing either. Here the purple plots on the left corresponds to 'shape'.** <br />
@@ -112,6 +125,16 @@ plot5=ggplot(data = shape_untimed_truncate, aes(x=timerDisplay, y=timeUsedPerSha
 
 plot6=ggplot(data = group_6002, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(group_6002)[1])) 
 grid.arrange(plot5,plot6,ncol=2)
+```
+
+### Linear Regression:
+```{r}
+
+mod5 <- lm(timeUsedPerShape ~ matchingScheme + timerDisplay, data = shape_untimed_truncate)
+mod6 <- lm(timeUsedPerShape ~ matchingScheme + timerDisplay, data = group_6002)
+
+summary(mod5)
+summary(mod6)
 ```
 Findings: Firstly, we realize that in *Sample B*, the factor-level distribution is not thorough as there are no entries with 'matchingScheme' of diffColor and shape. Thus, if we ever going to ask questions like "how does timerDisplay affects timeUsedPerShape?" and we only collected *sample B*, we should realize that our results are biased since different matchingScheme does significantly affects the distribution of means in both factor levels (with and without timerDisplay).  
 
@@ -127,70 +150,54 @@ grid.arrange(plot9,plot10,ncol=2)
 ```
 Finding: Now for the smaller sample, we only have a single level for timerDisplay. Derived from previous finding that timerDisplay generally corresponds to longer timeUsedPerShape, the mean of the smaller sample is likely to be an overestimation of the population mean since it does not have any data without timerDisplay. Here is how small sample can easily be misleading to understand the entire picture.  
 
-____________________
-
 
 ## Approach 2: Plots of Same Dataset With Different Number of Variables
-### NumError as Response Variable
-**Filter data by groupID (top 5 most used group IDs)**
 
-
+### Using errorPerShape as response
+```{r}
+shape_untimed_sec$numShapes=as.numeric(shape_untimed_sec$numShapes)
+shape_untimed_sec = mutate(shape_untimed_sec, errorPerShape=shape_untimed_sec$numErrors / shape_untimed_sec$numShapes)
+```
 ### 8.Effects of looking at one additional fixed variable ('TimerDisplay')
-### *Sample A*
-```{r graph7, echo=FALSE}
+### Sample untimed
+```{r graph8}
 library(gridExtra)
-plot1 <- ggplot(data = shape_untimed, aes(x=matchingScheme, y=numErrors)) + geom_boxplot()  + theme(legend.position="top") + labs(title="")
+plot7 <- ggplot(data = shape_untimed_sec, aes(x=matchingScheme, y=errorPerShape)) + geom_boxplot() + geom_point(position = "jitter")  + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_sec)[1]))+ylim(0,2)
 
-plot2 <- ggplot(data = shape_untimed, aes(x=matchingScheme, y=numErrors)) +  geom_boxplot()  + aes(colour=numShapes) + facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
+plot8 <- ggplot(data = shape_untimed_sec, aes(x=matchingScheme, y=errorPerShape)) +  geom_boxplot()  + aes(colour=timerDisplay) + theme(legend.position="top") + labs(title="") +ylim(0,2)
 
-grid.arrange(plot1, plot2, ncol=2)
-```
-
-### 9. *Sample C*           
-```{r graph8, echo=FALSE}
-plot3 <- ggplot(data = shape_HotchkissStudent16, aes(x=matchingScheme, y=numErrors)) +
-  geom_boxplot()  + theme(legend.position="top") + labs(title="")
-
-plot4 <- ggplot(data = shape_HotchkissStudent16, aes(x=matchingScheme, y=numErrors)) + 
-  geom_boxplot()  + aes(colour=numShapes) + facet_wrap(~timerDisplay, ncol=4) +
-  theme(legend.position="top") + labs(title="") 
-grid.arrange(plot3, plot4, ncol=2)
-```
-<br />
-Though 'colored by' here does not add any new information, but we still decide to include the third variable 'numShapes' because it still tells us that the all entries in this group used 21 shapes.
-
-### 10. Effects of looking at two additional fixed variable (TimerDisplay, NumShapes)
-```{r graph9, echo=FALSE}
-plot5 <- ggplot(data = shape_6002T2, aes(x=matchingScheme, y=numErrors)) +geom_boxplot()  + theme(legend.position="top") + labs(title="")
-
-plot6 <- ggplot(data = shape_6002T2, aes(x=matchingScheme, y=numErrors)) + geom_boxplot()  + aes(colour=timerDisplay) + facet_wrap(~numShapes, ncol=4) +
-  theme(legend.position="top") + labs(title="") 
-grid.arrange(plot5, plot6, ncol=2)
-```
-
-### 11.                                                     
-```{r graph10, echo = FALSE}
-plot7 <- ggplot(data = shape_6002T3, aes(x=matchingScheme, y=numErrors)) + geom_boxplot()  + theme(legend.position="top") + labs(title="")
-
-plot8 <- ggplot(data = shape_6002T3, aes(x=matchingScheme, y=numErrors)) +  geom_boxplot()  + aes(colour=timerDisplay) + facet_wrap(~numShapes, ncol=4) + theme(legend.position="top") + labs(title="") 
 grid.arrange(plot7, plot8, ncol=2)
 ```
 
-### 12.                             
-```{r graph11, echo=FALSE}
-plot9 <- ggplot(data = shape_6002T4, aes(x=matchingScheme, y=numErrors)) + geom_boxplot()  + theme(legend.position="top") + labs(title="")
+### Linear Regression (untimed Sample)
+```{r}
+mod10 <- lm(errorPerShape ~ matchingScheme, data = shape_untimed_sec)
+mod20 <- lm(errorPerShape ~ timerDisplay, data = shape_untimed_sec)
+mod30 <- lm(errorPerShape ~ matchingScheme + timerDisplay, data = shape_untimed_sec)
+summary(mod10)
+summary(mod20)
+summary(mod30)
+```
+### Using '6002' Sample: 
+```{r}
+plot11 <- ggplot(data = group_6002, aes(x=matchingScheme, y=errorPerShape)) + geom_boxplot()  + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_sec)[1]))+ylim(0,1.5)
 
-plot10 <- ggplot(data = shape_6002T4, aes(x=matchingScheme, y=numErrors)) +  geom_boxplot()  + aes(colour=timerDisplay) + facet_wrap(~numShapes, ncol=4) +
-  theme(legend.position="top") + labs(title="") 
-grid.arrange(plot9, plot10, ncol=2)
+plot12 <- ggplot(data = group_6002, aes(x=matchingScheme, y=errorPerShape)) +  geom_boxplot()  + aes(colour=timerDisplay) + theme(legend.position="top") + labs(title="") +ylim(0,1.5)
+
+grid.arrange(plot11, plot12, ncol=2)
+```
+### Linear Regression (6002)
+```{r}
+mod11 <- lm(errorPerShape ~ matchingScheme, data = group_6002)
+mod21 <- lm(errorPerShape ~ timerDisplay, data = group_6002)
+mod31 <- lm(errorPerShape ~ matchingScheme + timerDisplay, data = group_6002)
+summary(mod11)
+summary(mod21)
+summary(mod31)
 ```
 
-### 13.  START HERE                      
-```{r graph12, echo=FALSE}
-plot11 <- ggplot(data = shape_6002T6, aes(x=matchingScheme, y=numErrors)) +
-  geom_boxplot()  + theme(legend.position="top") + labs(title="")
-plot12 <- ggplot(data = shape_6002T6, aes(x=matchingScheme, y=numErrors)) + 
-  geom_boxplot()  + aes(colour=timerDisplay) + facet_wrap(~numShapes, ncol=4) +
-  theme(legend.position="top") + labs(title="") 
-grid.arrange(plot11, plot12, ncol=2)
+## overlaying jitterplots with boxplots: (not looking great)
+```{r}
+ggplot(data = shape_untimed_sec, aes(x=matchingScheme, y=errorPerShape)) + geom_boxplot() + geom_jitter(size= 1, alpha=0.2) + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_sec)[1]))+ylim(0,2)
+##geom_point(position = "jitter")  + 
 ```

@@ -8,6 +8,20 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+## Discription
+* ####Goal
+We want to test within selected sample that if, when consider gender only, female and male use different time to finish the game. The overall goal is to see if students in different groups with sample size less than 50 will achieve different conclusions.
+
+* ####Hypothesis
+We hypothesis that gender influences TimeUsed.
+
+* ####Method
+    + We first filter out a gender data using v1label1.
+    + Then, we mutate a column to the gender data where if the user was male we denote as 1, and if female we denote as 0.
+    + We use a for loop to select all groupID's whose sample size is less then 50 and greater than 5. Also we use only groups that have more than 1 male and 1 female observations. (Otherwise t.test would fail).
+    + We perform the two-sample t-test within each group.
+    + We then perform a two-sample t-test for the over all gender data and yield the p-value as a comparison
+  
 
 ## Libraries
 

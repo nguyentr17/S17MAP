@@ -123,6 +123,23 @@ $(document).ready(function () {
 </div>
 
 
+<div id="discription" class="section level2">
+<h2>Discription</h2>
+<ul>
+<li><h4 id="goal">Goal</h4>
+<p>We want to test within selected sample that if, when consider gender only, female and male use different time to finish the game. The overall goal is to see if students in different groups with sample size less than 50 will achieve different conclusions.</p></li>
+<li><h4 id="hypothesis">Hypothesis</h4>
+<p>We hypothesis that gender influences TimeUsed.</p></li>
+<li><h4 id="method">Method</h4>
+<ul>
+<li>We first filter out a gender data using v1label1.</li>
+<li>Then, we mutate a column to the gender data where if the user was male we denote as 1, and if female we denote as 0.</li>
+<li>We use a for loop to select all groupID’s whose sample size is less then 50 and greater than 5. Also we use only groups that have more than 1 male and 1 female observations. (Otherwise t.test would fail).</li>
+<li>We perform the two-sample t-test within each group.</li>
+<li>We then perform a two-sample t-test for the over all gender data and yield the p-value as a comparison</li>
+</ul></li>
+</ul>
+</div>
 <div id="libraries" class="section level2">
 <h2>Libraries</h2>
 </div>

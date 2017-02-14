@@ -33,6 +33,7 @@ library(rprojroot)
 library(ggplot2)
 library(mosaic)
 library(data.table)
+library(xlsx)
 ```
 
 ## Import and Trim Data
@@ -121,7 +122,7 @@ We will show the boxplot of all groups using gender as the independet variable a
 
 ```{r, echo=TRUE}
 par(mar=c(1,1,1,1))
-par(mfrow = c(4,5))
+##par(mfrow = c(4,5))
 groupName <- c()
 pvalues <- c()
 for (i in 1:length(selected_groupID)) {
@@ -133,11 +134,16 @@ for (i in 1:length(selected_groupID)) {
     pvalues <- cbind(pvalues, p)
     data1 <- gender2[gender2$groupID == selected_groupID[i],]
     if (p < 0.1) {
-    boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+      if (mean(female) < mean(male)) {
+      boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
     } else {
-      boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+      boxplot(TimeUsedSec ~ gender,data=data1, col="red", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
     }
+  } else {
+    boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+  }
     
+  write.csv(gender2[gender2$groupID == selected_groupID[i],], file =paste(selected_groupID[i], "group.csv"))
   }
 }
 ```
@@ -155,12 +161,19 @@ pvl2 <- round(t.test(female, male)$p.value, digits = 3)
 boxplot(TimeUsedSec ~ gender,data=gender2, main=paste("n=", dim(gender2)[1], ", two sided pval=", pvl2), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
 ```
 
-We can further conduct a one-sided t-test to see whether male time used are significantly more than female time used or otherwise.
-In this case, our Null Hypothesis is that there is no difference between the female and male time used. Our Alternative Hypothesis is that female use less time then male. The p-value is given as follows:
 
 ```{r}
-pvl1 <- round(t.test(female, male, alternative="less")$p.value, digits = 3)
-pvl1
-```
+temp <- list.files(pattern = '*.csv')
+data <- rbind(read.csv(temp[1])[-c(1)], read.csv(temp[2])[-c(1)])
+data <- rbind(data, read.csv(temp[3])[-c(1)])
+              
 
-Choose alpha = 0.05 for the one-sided t-test, since 0.021 is less than 0.05, we have evidence to reject the null hypothesis and confirm that in the entire gender group, female use less time than male.
+
+##
+##for (i in 2:length(temp)) {
+##  file <- read.csv(temp[i])[-c(1)]
+##  if (dim(file)[2] == 20) {
+##    out.file <- rbind(out.file, file)
+##  }
+##}
+```

@@ -20,13 +20,15 @@ Since we want to simulate the situation that we are all research groups interest
 In a pair, perform the t-test on the dataset you are given following the instructions. 
 ## Import data
 ```{r}
-group_data <- 
+##temp = list.files(pattern="*.csv")
+##myfiles = do.call(rbind, lapply(temp, function(x) read.csv(x, stringsAsFactors = FALSE)))
+group_data <- read.csv("cleaned_gender.csv")
 ```
 ## Performing t-test
 ```{r}
-female <- $gender == 1
-male <- $gender == 0
-t_test<- t.test($female, $male)
+female <- group_data$gender == 1
+male <- group_data$gender == 0
+t_test<- t.test(female, male)
 ```
 ## p-value
 ```{r}
@@ -49,14 +51,20 @@ par(mar=c(1,1,1,1))
 par(mfrow = c(4,5))
 groupName <- c()
 pvalues <- c()
+
+tb <- as.data.frame(table(group_data$groupID))
+##Select groups that are under size 50
+tb2 <- tb[tb$Freq >= 5 & tb$Freq <= 50,]
+##Create a vector of groupID's whose size is between 25 and 50
+selected_groupID <- as.character(tb2$Var1)
 for (i in 1:length(selected_groupID)) {
-  female <- gender2[gender2$groupID == selected_groupID[i] & gender2$gender == 0,]$TimeUsedSec
-  male <- gender2[gender2$groupID == selected_groupID[i] & gender2$gender == 1,]$TimeUsedSec
+  female <- group_data[group_data$groupID == selected_groupID[i] & group_data$gender == 0,]$TimeUsedSec
+  male <- group_data[group_data$groupID == selected_groupID[i] & group_data$gender == 1,]$TimeUsedSec
   if (length(female) > 1 & length(male) > 1) {
     groupName <- cbind(groupName, selected_groupID[i])
     p <- round(t.test(female, male)$p.value, digits = 3)
     pvalues <- cbind(pvalues, p)
-    data1 <- gender2[gender2$groupID == selected_groupID[i],]
+    data1 <- group_data[group_data$groupID == selected_groupID[i],]
     if (p < 0.1) {
     boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
     } else {

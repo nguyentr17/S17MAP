@@ -1,0 +1,74 @@
+---
+title: "Lab on credibility of p-value"
+author: "Jinlin He, Yuan Wang"
+date: "February 13, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Objective
+To examine how p-value can vary even if we are conducting identical experiments
+
+# Data 
+The dataset is collected from the live database of an online web game 'Shapesplosion'(http://web.grinnell.edu/individuals/kuipers/stat2labs/Perfection.html). The group data you will be working with is a subset sample taken from the original dataset. It contains observations of one of the groups who has tested "Gender" as an additional predictor. These group data were selected as they have sample sizes between 5 ~ 50. 
+# Research Question 
+Since we want to simulate the situation that we are all research groups interested in a particular field, we are going to ask the identical question: 
+## "Does gender affect the time used to play Shapesplosion game?"
+# Procedure
+In a pair, perform the t-test on the dataset you are given following the instructions. 
+## Import data
+```{r}
+group_data <- 
+```
+## Performing t-test
+```{r}
+female <- $gender == 1
+male <- $gender == 0
+t_test<- t.test($female, $male)
+```
+## p-value
+```{r}
+p_value <- t_test$pvalues
+
+```
+## Discuss in your pair and write down your conclusion to the hypothesis test. Think carefully about the definition of p-values. 
+
+## Present your p-value with your classmates and note down your observations. Record every group's p-value to compare them directly.  
+
+## Discuss:
+* How many groups concluded that females use more time play Shapesplosion?
+* How many groups concluded that males use more time play Shapesplosion?
+* How many groups did not rejected hypothesis? How about the others? 
+
+## Here is a graphical representation of all 18 groups from the group dataset. What are you observing here? 
+
+```{r plot, echo=TRUE}
+par(mar=c(1,1,1,1))
+par(mfrow = c(4,5))
+groupName <- c()
+pvalues <- c()
+for (i in 1:length(selected_groupID)) {
+  female <- gender2[gender2$groupID == selected_groupID[i] & gender2$gender == 0,]$TimeUsedSec
+  male <- gender2[gender2$groupID == selected_groupID[i] & gender2$gender == 1,]$TimeUsedSec
+  if (length(female) > 1 & length(male) > 1) {
+    groupName <- cbind(groupName, selected_groupID[i])
+    p <- round(t.test(female, male)$p.value, digits = 3)
+    pvalues <- cbind(pvalues, p)
+    data1 <- gender2[gender2$groupID == selected_groupID[i],]
+    if (p < 0.1) {
+    boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+    } else {
+      boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+    }
+  }
+}
+
+```
+
+
+# Explanation (unfinished)
+
+
+

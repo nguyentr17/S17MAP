@@ -1,13 +1,14 @@
 ---
-title: "Hypothesis_Testing_Gender"
-author: "Yuan Wang"
-date: "2/6/2017"
+title: "Feb20_Gender_Test"
+author: "Jinlin He, Yuan Wang"
+date: "February 20, 2017"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 ## Description
 * ####Goal
 We want to test within selected sample that if, when consider gender only, female and male use different time to finish the game. The overall goal is to see if students in different groups with sample size less than 50 will achieve different conclusions.
@@ -90,9 +91,8 @@ gender1 <- mutate(gender1,
                     ifelse(pmax(tolower(strtrim(gender1$v1label,1)) == "f",
                                 (tolower(strtrim(gender1$v1value,1)) =="f")), 
                            0, 
-                           NA))))
+                           "Inconclusive"))))
 
-gender2 <- na.omit(gender1)
 ```
 
 ## Extract GroupID Information
@@ -100,8 +100,27 @@ gender2 <- na.omit(gender1)
 Then, within the gender data, we identified the group names with sample size between 5 and 50. We make a vector of groupID of our desired groups.
 
 ```{r}
-tb <- as.data.frame(table(gender2$groupID))
+tb <- as.data.frame(table(gender1$groupID))
+colnames(tb)[1]<-"groupID" ##Setting variable names for clarity
 
+##Cross Tabulation to get sample size info for each group. 
+tb1 <-as.data.frame(table(gender1$groupID,gender1$gender)) 
+colnames(tb1)[1]<- "groupID"
+colnames(tb1)[2]<- "gender"
+
+##Groups to be removed
+remove_gp <- c()
+for(i in 1:length(tb1$Freq)){
+  if(tb1$Freq[i] <= 1) {
+    cbind(remove_gp,tb1$groupID)
+  }
+}
+##Removing groups with sample size for either M/F factor level less than 1
+group_ID <- as.character(tb$groupID)
+for (i in 1:length(groupID)) {
+  if (groupID[i]==)
+      
+}
 ##Select groups that are under size 50
 tb2 <- tb[tb$Freq >= 5 & tb$Freq <= 50,]
 

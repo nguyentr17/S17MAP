@@ -25,10 +25,17 @@ In a pair, perform the t-test on your given dataset.
 
 ## Import data
 ```{r}
+<<<<<<< Updated upstream
 ##temp = list.files(pattern="*.csv")
 ##myfiles = do.call(rbind, lapply(temp, function(x) read.csv(x, stringsAsFactors = FALSE)))
 group_data <- read.csv("cleaned_gender.csv")
+<<<<<<< Updated upstream
 
+=======
+=======
+group_data
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 ```
 ## Performing t-test: The sample code performed a two-sample t-test on the overall datset. You should modify the code accordingly to test your given dataset.
 ```{r}

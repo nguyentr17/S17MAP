@@ -120,7 +120,7 @@ We will show the boxplot of all groups using gender as the independet variable a
 
 ```{r, echo=TRUE}
 par(mar=c(1,1,1,1))
-par(mfrow = c(4,5))
+par(mfrow = c(5,5))
 groupName <- c()
 pvalues <- c()
 for (i in 1:length(selected_groupID)) {
@@ -173,6 +173,7 @@ data <- rbind(data, read.csv(temp[15])[-c(1)])
 data <- rbind(data, read.csv(temp[16])[-c(1)])
 data <- rbind(data, read.csv(temp[17])[-c(1)])
 data <- rbind(data, read.csv(temp[18])[-c(1)])
+
 
 female <- data[data$gender == 0,]$TimeUsedSec
 male <- data[data$gender == 1,]$TimeUsedSec

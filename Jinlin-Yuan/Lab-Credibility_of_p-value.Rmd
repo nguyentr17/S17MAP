@@ -8,59 +8,58 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-# Objective
+## Objective
 In this lab, we are going to examine how p-value can vary even when we conduct identical experiments on the same population.
 
-# Data 
-The dataset is collected from the live database of an online web game 'Shapesplosion'(http://web.grinnell.edu/individuals/kuipers/stat2labs/Perfection.html). The group data you will be working with is a subset sample taken from the original dataset. It contains observations of one of the groups who has tested "Gender" as an additional predictor. These group data were selected as they have sample sizes between 5 ~ 50. 
+## Data 
+The dataset is collected from the live database of an online web game 'Shapesplosion'(http://web.grinnell.edu/individuals/kuipers/stat2labs/Perfection.html). The group data you are working with are entries of groups who has tested "Gender" as an additional predictor. 
 
-# Research Question 
+## Research Question 
 Since we want to simulate the situation that we are all research groups interested in a particular field, we are going to ask the identical question: 
 
-## "Does gender affect the time used to play Shapesplosion game?"
-Null hypothesis: the average time used to play the game is the same for both males and females players. 
+####"Does gender affect the time used to play Shapesplosion game?"
+#### Null hypothesis: the average time used to play the game is the same for both males and females players. 
 
-# Procedure
+## Procedure
 In a pair, perform the t-test on your given dataset.
 
-## Import data
+#### 1.Import data and library
 ```{r}
-<<<<<<< Updated upstream
+
 ##temp = list.files(pattern="*.csv")
 ##myfiles = do.call(rbind, lapply(temp, function(x) read.csv(x, stringsAsFactors = FALSE)))
 group_data <- read.csv("cleaned_gender.csv")
-<<<<<<< Updated upstream
 
-=======
-=======
-group_data
->>>>>>> Stashed changes
->>>>>>> Stashed changes
+library(ggplot2)
+
 ```
-## Performing t-test: The sample code performed a two-sample t-test on the overall datset. You should modify the code accordingly to test your given dataset.
+#### 2.Performing t-test: The sample code performed a two-sample t-test on the overall datset. You should modify the code accordingly to test your given dataset.
 ```{r}
 female <- group_data[group_data$gender == 0,]$TimeUsedSec
 male <- group_data[group_data$gender == 1,]$TimeUsedSec
 t_test<- t.test(male,female,alternative="two.sided")
 ```
-## p-value
+#### p-value
 ```{r}
-p_value <- t_test$p.value
-t_stat<-t_test$statistic
+  t_test$p.value
+  t_test$statistic
 ```
-### Discuss in your pair and write down the conclusion to YOUR hypothesis test. Think carefully about the definition of p-values. 
+#### 3.Discuss in your pair and write down the conclusion to YOUR hypothesis test. Think carefully about the definition of p-values. 
 
-## The p value for two-sided t-test performed above on the overall group is 0.00369. It suggests that on an alpha level of 0.05, the probability of obtaining a mean difference as extreme as 2.92(test statistics) or -2.92 is less than 0.05. Therefore, just based on the result from this sample, we may conclude that gender does have an effect on the play time of the game. 
-## A graphical reprentation of the mean difference suggests that male players on average take more time than female players do.
-```{r graph}
-ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="") 
+#### 4.Results
+As the result above suggested, the p value for two-sided t-test performed above on the overall group is 0.00369. It suggests that on an alpha level of 0.05, the probability of obtaining a mean difference as extreme as 2.92(test statistics) or -2.92 is less than 0.05. Therefore, just based on the result from this sample, we may conclude that gender does have an effect on the play time of the game. 
+
+#### A graphical reprentation of the mean difference seem to suggest that male players on average take more time than female players do.
+```{r graph1}
+group_data$gender= as.factor(group_data$gender)
+ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="top") + labs(title="") 
 ```
 
-## Visualizing the distribution of points.
 
-### One group of students are given the dataset of group with group_ID "MATH22015"
+#### 5.Case Study:
+One group of students are given the dataset of group with group_ID "MATH22015"
 ```{r}
-MATH22015<-filter(group_data, group_data$groupID=="MATH22015")
+MATH22015<-group_data[group_data$groupID=="MATH22015",]
 MAT_female <- MATH22015[MATH22015$gender == 0,]$TimeUsedSec
 MAT_male <- MATH22015[MATH22015$gender == 1,]$TimeUsedSec
 MAT_t_test <- t.test(MAT_male,MAT_female,alternative="two.sided")
@@ -68,10 +67,11 @@ MAT_pvalue <- MAT_t_test$p.value
 ```
 They obtained a p-value of 0.0776. On an alpha level of 0.05, they failed to reject the null hypothesis and concluded that gender does not make a difference in play time of the game. This is contrary to what we have concluded from the overall dataset. 
 
-### The graph also suggests that female players on average take more time to play the game than male players, contrary to our previous findings.
+#### The graph also suggests that female players on average take more time to play the game than male players, contrary to our previous findings.
 ```{r graph}
 MATH22015$gender= as.factor(MATH22015$gender)
-ggplot(data=MATH22015, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="") 
+
+ggplot(data=MATH22015, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="") + aes(colour = gender)
 ```
 
 ### Present your p-value with your classmates. Record every group's p-value and make a comparision. What do you observe?
@@ -85,7 +85,7 @@ ggplot(data=MATH22015, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(l
 group_data$gender <- as.factor(group_data$gender)
 
 ```
-## Here is a graphical representation of all 18 groups from the group dataset. What are you observing here? 
+#### Here is a graphical representation of all 18 groups from the group dataset. What are you observing here? The colored boxplots have p-value < 0.05
 
 ```{r plot, echo=TRUE}
 par(mar=c(1,1,1,1))
@@ -116,8 +116,12 @@ for (i in 1:length(selected_groupID)) {
 
 ```
 
+### So why does p-value differs? On that note, how credible is p-value?
+Firstly, let's go back to the definition of p-vlaue. In this context, it is the probability of obtaining a mean difference in play time between male and female players as extreme as we observed in our repective samples, on the premise that the null hypothesis--male and female players spend equal time on the game--is true. 
 
-# Explanation (unfinished)
+Therefore, if the null hypothesis is false in the first place, that is if the population mean of female playtime and male playtime are indeed different, p-value does not imply information as meaningful as we thought. 
+
+### Visualizing the distribution of points.
 
 
 

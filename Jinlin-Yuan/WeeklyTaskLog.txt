@@ -1,5 +1,13 @@
 Weekly Task Log
 
+Week5 (Feb 14 2017)
+____
+Adding on to the Lab:
+*Single t-test 
+e.g. “this group gets this result/plot”
+
+*Facet by ___ in all graphs 
+
 Week4 (Feb 9 2017)
 
 

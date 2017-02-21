@@ -121,7 +121,7 @@ We will show the boxplot of all groups using gender as the independet variable a
 
 ```{r, echo=TRUE}
 par(mar=c(1,1,1,1))
-##par(mfrow = c(4,5))
+par(mfrow = c(4,5))
 groupName <- c()
 pvalues <- c()
 for (i in 1:length(selected_groupID)) {
@@ -153,26 +153,30 @@ for (i in 1:length(selected_groupID)) {
 
 We can also draw a boxplot for the over gender2 data and calculate a p-value as comparison to the group-wise plots and p-values.
 
-```{r}
-female <- gender2[gender2$gender == 0,]$TimeUsedSec
-male <- gender2[gender2$gender == 1,]$TimeUsedSec
-pvl2 <- round(t.test(female, male)$p.value, digits = 3)
-boxplot(TimeUsedSec ~ gender,data=gender2, main=paste("n=", dim(gender2)[1], ", two sided pval=", pvl2), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
-```
 
 
 ```{r}
-temp <- list.files(pattern = '*.csv')
+temp <- list.files(pattern = '*group.csv')
 data <- rbind(read.csv(temp[1])[-c(1)], read.csv(temp[2])[-c(1)])
 data <- rbind(data, read.csv(temp[3])[-c(1)])
-              
+data <- rbind(data, read.csv(temp[4])[-c(1)])
+data <- rbind(data, read.csv(temp[5])[-c(1)])
+data <- rbind(data, read.csv(temp[6])[-c(1)])              
+data <- rbind(data, read.csv(temp[7])[-c(1)])
+data <- rbind(data, read.csv(temp[8])[-c(1)])
+data <- rbind(data, read.csv(temp[9])[-c(1)])
+data <- rbind(data, read.csv(temp[10])[-c(1)])
+data <- rbind(data, read.csv(temp[11])[-c(1)])
+data <- rbind(data, read.csv(temp[12])[-c(1)])
+data <- rbind(data, read.csv(temp[13])[-c(1)])
+data <- rbind(data, read.csv(temp[14])[-c(1)])
+data <- rbind(data, read.csv(temp[15])[-c(1)])
+data <- rbind(data, read.csv(temp[16])[-c(1)])
+data <- rbind(data, read.csv(temp[17])[-c(1)])
+data <- rbind(data, read.csv(temp[18])[-c(1)])
 
-
-##
-##for (i in 2:length(temp)) {
-##  file <- read.csv(temp[i])[-c(1)]
-##  if (dim(file)[2] == 20) {
-##    out.file <- rbind(out.file, file)
-##  }
-##}
+female <- data[data$gender == 0,]$TimeUsedSec
+male <- data[data$gender == 1,]$TimeUsedSec
+pvl2 <- round(t.test(female, male)$p.value, digits = 3)
+boxplot(TimeUsedSec ~ gender,data=data, main=paste("n=", dim(data)[1], ", two sided pval=", pvl2), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
 ```

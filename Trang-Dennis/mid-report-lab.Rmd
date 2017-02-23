@@ -1,0 +1,17 @@
+---
+title: "Mid-term Report Lab"
+author: "Trang Nguyen, Dennis Liu"
+date: "2/23/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## INTRODUCTION
+
+## 1. Data Scraping
+
+## 
+

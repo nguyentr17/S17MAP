@@ -15,8 +15,8 @@ gen_female = c("^f", "^mu")
 ### @return: 0 if no match
 ###          index of the factor (1, 2, 3() if there is match
 ismatch <- function(cond, x, y, z) {
-  x <- grep(paste(cond, collapse = "|"), c(x, y, z), ignore.case = T)
-  return (ifelse(length(x), x[1], 0))
+  x <- grep(paste(cond, collapse = "|"), c(x, y, z), ignore.case = T, value = FALSE)
+  return (ifelse(length(x), as.numeric(x), as.numeric(0)))
 }
 
 ### level_gen_fun
@@ -28,15 +28,16 @@ ismatch <- function(cond, x, y, z) {
 ### @note: this function is specific to gender only. Needs to think about how to generalize it. 
 level_gen_fun <- function(x, y) {
   return (ifelse(x == 0, -1, 
-                 ifelse(grepl(paste(gen_female, collapse = "|"),tangram[y,x+4], ignore.case = T),
+                 ifelse(grepl(paste(gen_female, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
                         "F", 
-                        ifelse(grepl(paste(gen_male, collapse = "|"),tangram[y,x+4], ignore.case = T),
+                        ifelse(grepl(paste(gen_male, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
                                "M",-2))))
-}
-
-tangram$factor_gender <- mapply(ismatch, gen, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)
+} ## cannot be used for data table
+# WRONG CODE: tangram$factor_gender <- mapply(ismatch, gen, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE) ## wrong: clase301
+tangram <- as.data.table(tangram)
+tangram[, factor_gender := ismatch(gen, Factor1, Factor2, Factor3), by = 1:nrow(tangram)]
+tangram <- as.data.frame(tangram)
 tangram$level_gender <- mapply(level_gen_fun, tangram$factor_gender, 1:nrow(tangram), SIMPLIFY = TRUE)
-
 
 ### Stem major
 
@@ -44,7 +45,8 @@ tangram$level_gender <- mapply(level_gen_fun, tangram$factor_gender, 1:nrow(tang
 stem <- c("stem")
 stem_Y <- c("^y")
 stem_N <- c("^n")
-tangram$factor_STEM <- mapply(ismatch, stem, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)
+#tangram$factor_STEM <- mapply(ismatch, stem, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)
+tangram[, factor_STEM := ismatch(stem, Factor1, Factor2, Factor3), by = 1:nrow(tangram)]
 level_stem_fun <- function(x, y) {
   return (ifelse(x == 0, -1, 
                  ifelse(grepl(paste(stem_Y, collapse = "|"),tangram[y,2*x+3], ignore.case = T),

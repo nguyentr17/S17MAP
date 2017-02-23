@@ -1,0 +1,310 @@
+---
+title: "Tangram Data Plots"
+author: "Dennis Liu, Trang Nguyen"
+date: "1/26/2016"
+output: html_document
+---
+
+First, we want to import real time data from website. For the future convinence, we change the type of the column into factor and some into numeric. 
+#if not install
+```{r, message=FALSE, warning=FALSE}
+library(treemap)
+library(dplyr) 
+library(mosaic)
+library(ggplot2)
+library(data.table)
+library(gplots)
+
+if (!require("devtools")) install.packages("devtools")
+devtools::install_github("ropensci/plotly")
+
+library(plotly)
+tangrams_data <- fread("http://statgames.tietronix.com/tangrams/webreporter.php?game=tangrams&GroupName=&winlose=both&random=false&rows=&type=csv")
+tangrams_data$HintsEnabled <- as.factor(tangrams_data$HintsEnabled)
+tangrams_data$HintsUsed <- as.factor(tangrams_data$HintsUsed)
+tangrams_data$Won <- as.factor(tangrams_data$Won)
+tangrams_data$TimerHint <- as.factor(tangrams_data$TimerHint)
+tangrams_data$TimerDisplay <- as.factor(tangrams_data$TimerDisplay)
+tangrams_data$RequestedTime <- as.numeric(tangrams_data$RequestedTime)
+tangrams_data$NumClicks <- as.numeric(tangrams_data$NumClicks)
+tangrams_data$TimeUsed <- as.numeric(tangrams_data$TimeUsed)
+tangrams_data$NumShapes <- as.numeric(tangrams_data$NumShapes)
+```
+
+First, we want to take an initial look on the relationship between hint used and time. 
+
+```{r}
+ xyplot( TimeUsed ~ HintsUsed  |  HintsEnabled, data = tangrams_data, main="")
+```
+
+We do notice that there is several outliners in both facets. It may be caused by the delay of the internet or failure of the web flash widget. Now,we want to limit our data within one hour(3600 seconds) 
+```{r}
+tangramfilter <- tangrams_data[tangrams_data$TimeUsed < 3600,]
+tangramfilter <- tangramfilter[tangramfilter$TimeUsed > 0,]
+tangramfilter$TimeUsed_log <- log(tangramfilter$TimeUsed )
+ggplot(data = tangramfilter, aes(x=interaction(HintsEnabled,HintsUsed,lex.order = TRUE), y=TimeUsed)) + geom_boxplot()  + theme(legend.position="none") + labs(title="Boxplot for filtered data")+xlab("HintsEnabled.HintsUsed")  
+```
+
+
+We also notice that there are so many levels of Tangram type. Now, we want to take a closer look into this. we want to select sepcific dataset in order to take an initial look 
+
+```{r}
+tangram2 <- as.data.frame(table(tangramfilter$PuzzleName))
+colnames(tangram2) <- c("PuzzleName", "Freq")
+
+## colored by types of games: fixed or submitted
+statsgame <- c("Laughing Man", "Piano", "The Hook", "Complex Hexagon", "Diamond", "House of Tangrams",
+               "A Nice Lighthouse", "The Brain Buster", "A Simple Chair", "The Hat Wearer",
+               "The Acrobat", "The Bird", "Crouching Cat", "The Goat", "The Six", "The G",
+               "Andy's Puzzle", "Walking Person Puzzle", "A Medicine Jar", "Candle")
+tangram2$GameType <- "submitted"
+tangram2$GameType[tangram2$PuzzleName %in% statsgame] <- "statsgame"
+
+tangram2 <- tangram2[tangram2$PuzzleName %in% statsgame,]
+```
+
+To have a better visualization, we want to utilize the tree map package to make a graph
+
+```{r}
+treemap(tangram2, index = "PuzzleName", 
+         vSize = "Freq",
+         vColor = "GameType",
+         type = "categorical")
+```
+    
+    
+We notice that there are significant data entries including gender information. We want to categorize those information. We create another column with gender information. 
+
+```{r}
+tangram <- as.data.frame(tangramfilter)
+### Factor to be filtered: GENDER
+### A set of criteria for regular expressions/ key patterns
+gen = c("^gen","^sex")
+gen_male = c("^m","^h")
+gen_female = c("^f", "^mu")
+
+### ismatch
+### @input: cond: a vector of key patterns (e.g. gen)
+###         x, y, z: 3 columns to look for key
+### @return: 0 if no match
+###          index of the factor (1, 2, 3() if there is match
+ismatch <- function(cond, x, y, z) {
+  x <- grep(paste(cond, collapse = "|"), c(x, y, z), ignore.case = T, value = FALSE)
+  return (ifelse(length(x), as.numeric(x), as.numeric(0)))
+}
+
+### level_gen_fun
+### @input: x is the col index (given by factor_gender)
+###         y is the row index
+### @return: -1 if no gender factor indicated
+###          -2 if gender factor indicated but level_gen key patterns not matched (require future manual check)
+###           M/F
+### @note: this function is specific to gender only. Needs to think about how to generalize it. 
+level_gen_fun <- function(x, y) {
+  return (ifelse(x == 0, -1, 
+                 ifelse(grepl(paste(gen_female, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                        "F", 
+                        ifelse(grepl(paste(gen_male, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                               "M",-2))))
+}
+tangram <- as.data.table(tangram)
+tangram[, factor_gender := ismatch(gen, Factor1, Factor2, Factor3), by = 1:nrow(tangram)]
+tangram <- as.data.frame(tangram)
+tangram$level_gender <- mapply(level_gen_fun, tangram$factor_gender, 1:nrow(tangram), SIMPLIFY = TRUE)
+
+
+```
+
+Now, we want to take another look on the updated dataset.
+
+```{r}
+ 
+bwplot( TimeUsed_log ~ level_gender, data = tangram[tangram$level_gender == "F"|tangram$level_gender == "M",], main="") 
+```
+ We also want to make a treemap for this updated data. However, we are only looking at the build in puzzle for tangrams. 
+ 
+```{r}
+gen_tangram <- tangram[tangram$level_gender == "F"|tangram$level_gender == "M",]
+gen_tangram_statsgame <- gen_tangram[gen_tangram$PuzzleName %in% statsgame,]
+gen_tangram_count <- count_(gen_tangram_statsgame,"PuzzleName")
+treemap(gen_tangram_count, index = "PuzzleName", 
+         vSize = "n")
+```
+  
+We are also interest in the gender difference within one game. In order to do that, we plot a double bar chart. With the y-axis as the average of Time_used and the X-axis as Puzzle Name. 
+```{r}
+gen_tangram_statsgame <- gen_tangram[gen_tangram$PuzzleName %in% statsgame,]
+gen_tangram_count <- count_(gen_tangram_statsgame,"PuzzleName")
+gen_tangram_count <- gen_tangram_count[order(-gen_tangram_count$n),]
+ggplot(gen_tangram_statsgame[gen_tangram_statsgame$PuzzleName %in% head(gen_tangram_count$PuzzleName,5),], aes(fill = level_gender, y = TimeUsed_log, x = PuzzleName)) +
+  geom_bar(position = "dodge", stat = "identity")
+```
+
+```{r}
+gen_won_count <- as.data.frame(table(gen_tangram$level_gender,gen_tangram$Won))
+
+ggplot(gen_tangram, aes(fill = Won, y = TimeUsed, x = level_gender)) +
+  geom_bar(position = "dodge", stat = "identity")
+
+ggplot(gen_won_count, aes(x=Var1, y=Freq,fill=Var2)) + geom_bar(stat="identity")
+
+gen_won_res_count <-  as.data.frame(table(gen_tangram[gen_tangram$RequestedTime != 0,]$level_gender,gen_tangram[gen_tangram$RequestedTime != 0,]$Won))
+ggplot(gen_won_res_count, aes(x=Var1, y=Freq,fill=Var2)) + geom_bar(stat="identity")
+```
+
+#STEM MAJOR
+
+We also notice another interesting and significant factor, which is the STEM major. Most of this information asks whether the participant is STEM major or not. We want to find our whether being a STEM major could make a difference in playing this game. 
+
+```{r}
+stem <- c("stem")
+stem_Y <- c("^y")
+stem_N <- c("^n")
+tangram$factor_STEM <- mapply(ismatch, stem, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)
+level_stem_fun <- function(x, y) {
+  return (ifelse(x == 0, -1, 
+                 ifelse(grepl(paste(stem_Y, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                        "Y", 
+                        ifelse(grepl(paste(stem_N, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                               "N",-2))))
+}
+
+tangram$level_stem <- mapply(level_stem_fun, tangram$factor_STEM, 1:nrow(tangram), SIMPLIFY = TRUE)
+
+stem_tangram <- tangram[tangram$level_stem == "Y"|tangram$level_stem == "N",]
+```
+
+The code above helps us generate a subset which contains STEM information. Also, it creates a column which unifies Yes and No informaion. 
+
+
+```{r}
+stem_tangram_statsgame <- stem_tangram[stem_tangram$PuzzleName %in% statsgame,]
+stem_tangram_count <- count_(stem_tangram_statsgame,"PuzzleName")
+stem_tangram_count <- stem_tangram_count[order(-stem_tangram_count$n),]
+ggplot(stem_tangram_statsgame[stem_tangram_statsgame$PuzzleName %in% head(stem_tangram_count$PuzzleName,5),], aes(fill = level_stem, y = TimeUsed_log, x = PuzzleName)) +
+  geom_bar(position = "dodge", stat = "identity")
+```
+
+  
+```{r}
+
+ggplot(stem_tangram_statsgame[stem_tangram_statsgame$PuzzleName %in% head(stem_tangram_count$PuzzleName,5),], aes(fill = level_stem, y = TimeUsed_log, x = PuzzleName)) +
+  geom_bar(position = "dodge", stat = "identity")
+
+
+```
+`
+
+#athelete or not
+
+We also notice another interesting and significant factor, which is the STEM major. Most of this information asks whether the participant is STEM major or not. We want to find our whether being a STEM major could make a difference in playing this game. 
+
+```{r}
+athl <- c("athl")
+athl_Y <- c("^y")
+athl_N <- c("^n")
+tangram$factor_athl <- mapply(ismatch, athl, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)
+level_athl_fun <- function(x, y) {
+  return (ifelse(x == 0, -1, 
+                 ifelse(grepl(paste(athl_Y, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                        "Y", 
+                        ifelse(grepl(paste(athl_N, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                               "N",-2))))
+}
+
+tangram$level_athl <- mapply(level_athl_fun, tangram$factor_athl, 1:nrow(tangram), SIMPLIFY = TRUE)
+
+athl_tangram <- tangram[tangram$level_athl == "Y"|tangram$level_athl == "N",]
+```
+
+```{r}
+plot_ly(alpha=0.6) %>%
+  add_histogram(x=tangram[tangram$RequestedTime == 0,]$TimeUsed) %>%
+  add_histogram(x=tangram[tangram$RequestedTime == 60,]$TimeUsed) %>%
+  add_histogram(x=tangram[tangram$RequestedTime == 120,]$TimeUsed) %>%
+  add_histogram(x=tangram[tangram$RequestedTime == 180,]$TimeUsed) %>%
+  layout(barmode = "overlay")
+
+```
+
+We want to do some testing(for exampler whethter there is influence on time with the factor of gender, stem major and athelets). To do that, we want to finish the 
+
+```{r}
+
+par(mar=c(1,1,1,1))
+par(mfrow = c(4,5))
+groupName <- c()
+pvalues <- c()
+
+gen_table <- gen_tangram%>% 
+   group_by(GroupName) %>%
+   summarise(number = n())
+gen_table <- filter(gen_table,(gen_table$number>30))
+gen_table <- filter(gen_table,(gen_table$GroupName != ""))
+gen_name<-gen_table$GroupName 
+
+for (i in 1:length(gen_name)) {
+  female <- gen_tangram[gen_tangram$GroupName == gen_name[i] & gen_tangram$level_gender == "F",]$TimeUsed
+  male <- gen_tangram[gen_tangram$GroupName == gen_name[i] & gen_tangram$level_gender == "M",]$TimeUsed
+  if (length(female) > 1 & length(male) > 1) {
+    groupName <- cbind(groupName, gen_name[i])
+    p <- round(t.test(female, male)$p.value, digits = 3)
+    pvalues <- cbind(pvalues, p)
+    data1 <- gen_tangram[gen_tangram$GroupName == gen_name[i],]
+    if (p < 0.1) {
+    boxplot(TimeUsed_log ~ level_gender,data=data1, col="red", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender", ylab="Time Used Seconds")
+    } else {
+      boxplot(TimeUsed_log ~ level_gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p), ylab="Time Used Seconds")
+    }
+  }
+}
+```
+
+```{r}
+
+gen_table <- gen_tangram%>% 
+   group_by(GroupName) %>%
+   summarise(number = n())
+gen_table <- filter(gen_table,(gen_table$number>30))
+gen_table <- filter(gen_table,(gen_table$GroupName != ""))
+gen_name<-gen_table$GroupName 
+p <- list()
+for (i in 1:length(gen_name)){
+  temp <- gen_tangram[gen_tangram$GroupName == gen_name[i],]
+  p[[i]]<-ggplot(temp, aes(x = HintsUsed , y = TimeUsed,fill=level_gender)) +
+  geom_violin(position = position_dodge(width = 1),trim = FALSE) +
+  geom_boxplot(width=0.1, fill="white")+
+  coord_flip()+ 
+  labs(title="plot") +
+    theme(legend.position='none')+
+  geom_vline(xintercept=c(1.5,2.5,3.5,4.5,5.5,6.5,7.5))+
+  theme(plot.title = element_text(family = "Trebuchet MS", color = "blue", face="bold", size=12, hjust=0))
+}
+library(gridExtra)
+marrangeGrob(p, ncol=3,nrow=2)
+```
+
+```{r}
+
+temp <- gen_tangram[gen_tangram$GroupName == "14MSIM",]
+ggplot(temp, aes(x = HintsUsed , y = TimeUsed,fill=level_gender)) +
+  geom_boxplot(position = position_dodge(width = 1)) +
+  coord_flip()+ 
+  labs(title="plot") +
+  theme(plot.title = element_text(family = "Trebuchet MS", color = "blue", face="bold", size=12, hjust=0))
+
+ggplot(temp, aes(x = HintsUsed , y = TimeUsed,fill=level_gender)) +
+  geom_violin(position = position_dodge(width = 1),trim = FALSE) +
+  geom_boxplot(width=0.1, fill="white")+
+  coord_flip()+ 
+  labs(title="plot") +
+  geom_vline(xintercept=c(1.5,2.5,3.5,4.5,5.5,6.5,7.5))+
+  theme(plot.title = element_text(family = "Trebuchet MS", color = "blue", face="bold", size=12, hjust=0))
+```
+
+
+Our Concerns:
+In terms of data quality
+    a. The value of the factor and level is open ended as well as seperate. It is hard to identify the key information in one data entry. 
+    b. Lots of data entry contain some sort of typo, which may impose some difficulties in conducting the analysis.
+  

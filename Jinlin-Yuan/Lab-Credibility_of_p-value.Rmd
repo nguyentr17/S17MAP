@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 # Objective
 In order to better understand the meaning of a p-value, we are going to compare multiple studies that all conducted similar tests.
 
@@ -60,11 +61,13 @@ Let's repeat our analysis on a new study, using teh groupID "MATH22015".
 
 ```{r}
 MATH22015<-filter(group_data, group_data$groupID=="MATH22015")
+
 MAT_female <- MATH22015[MATH22015$gender == 0,]$TimeUsedSec
 MAT_male <- MATH22015[MATH22015$gender == 1,]$TimeUsedSec
 MAT_t_test <- t.test(MAT_male,MAT_female,alternative="two.sided")
 MAT_pvalue <- MAT_t_test$p.value
 ```
+
 This study resulted in a p-value of 0.0776. Using an alpha level of 0.05, this study would fail to reject the null hypothesis and concluded that gender does not make a difference in play time of the game.
 
 
@@ -78,14 +81,13 @@ ggplot(data=MATH22015, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(l
 
 ### Comparing multiple hypothesis tests
 
+
 ```{r}
 group_data$gender <- as.factor(group_data$gender)
 
 ```
 
 In Part 1 of this activity, you compared two different studies that evaluated the effect of gender on completion time of the shapesplosion game. Several additional studies on gender were conducted by multiple groups over multiple years. The following code conducts t-test and creates boxplots for several of these groups.
-
-
 
 ```{r plot, echo=TRUE}
 par(mar=c(1,1,1,1))
@@ -116,6 +118,7 @@ for (i in 1:length(selected_groupID)) {
 
 ```
 
+
 Figure___ is a graphical representation of all 18 groups from the group dataset. The colored boxplots have p-value < 0.05.
 
 > Question 1: What is the range of p-values observed in these studies?
@@ -134,7 +137,6 @@ Therefore, if the null hypothesis is false in the first place, that is if the po
 
 
 Visualizing the distribution of points.
-
 
 
 

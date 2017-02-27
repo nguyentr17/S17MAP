@@ -1,0 +1,78 @@
+---
+title: "Mid-term Report Lab"
+author: "Trang Nguyen, Dennis Liu"
+date: "2/23/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## INTRODUCTION
+
+## 1. Data Scraping
+Instead of downloading the csv from the website and then importing the file into R, we can stream live data using its url and the library __RCurl__.    
+```{r}
+library(RCurl)
+url <- "http://statgames.tietronix.com/tangrams/webreporter.php?game=tangrams&groupID=&winlose=both&random=false&rows=&type=csv"
+tangram <- read.csv(textConnection(readLines(url)), stringsAsFactors = F)
+```
+
+
+## 2. Data Cleaning
+This is a messy dataset for a couple of reasons:  
++ __TimeUsed__: There are many extreme outliers like 0 or 10000 seconds. Some users did not not finish the game and forgot to close the browser. Another issue with this variable is that time used is bounded above in some studies. If the study chooses restriction time request (60, 120, or 180 seconds), its time used will converge to the time limit and bias the results.  
++ __Factors__: There are 3 self-input factors and Tangram set up them into 3 different columns. Therefore, we need to search through all 3 columns for a specific factor (i.e. Gender).  
+
+# Step 1: Remove extreme outliers
+
+# Step 2: Use log transformation to reduce the variability of __TimeUsed__ variable  
+
+# Step 3: Consolidate 3 columns of factors and levels
+
+```{r}
+### 1. Factor to be filtered: GENDER
+### A set of criteria for regular expressions/ key patterns
+gen = c("^gen","^sex")
+gen_male = c("^m","^h")
+gen_female = c("^f", "^mu")
+
+### Supporting functions
+### ismatch
+### @input: cond: a vector of key patterns (e.g. gen)
+###         x, y, z: 3 columns to look for key
+### @return: 0 if no match
+###          index of the factor (1, 2, 3() if there is match
+ismatch <- function(cond, x, y, z) {
+  x <- grep(paste(cond, collapse = "|"), c(x, y, z), ignore.case = T, value = FALSE)
+  return (ifelse(length(x), as.numeric(x), as.numeric(0)))
+}
+
+### level_gen_fun
+### @input: x is the col index (given by factor_gender)
+###         y is the row index
+### @return: -1 if no gender factor indicated
+###          -2 if gender factor indicated but level_gen key patterns not matched (require future manual check)
+###           M/F
+### @note: this function is specific to gender only. Needs to think about how to generalize it. 
+level_gen_fun <- function(x, y) {
+  return (ifelse(x == 0, -1, 
+                 ifelse(grepl(paste(gen_female, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                        "F", 
+                        ifelse(grepl(paste(gen_male, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                               "M",-2))))
+} ## cannot be used for data table
+tangram <- as.data.table(tangram)
+tangram[, factor_gender := ismatch(gen, Factor1, Factor2, Factor3), by = 1:nrow(tangram)]
+tangram <- as.data.frame(tangram)
+tangram$level_gender <- mapply(level_gen_fun, tangram$factor_gender, 1:nrow(tangram), SIMPLIFY = T)
+```
+
+## 3. Data Exploration
+# Approach 1: View the dataset as one study
+
+# Approach 2: View the dataset as a cumulation of different studies 
+
+
+

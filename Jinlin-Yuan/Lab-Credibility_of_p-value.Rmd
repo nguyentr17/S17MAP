@@ -1,0 +1,141 @@
+---
+title: "Lab on Credibility of p-value"
+author: "Jinlin He, Yuan Wang"
+date: "February 13, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Objective
+In order to better understand the meaning of a p-value, we are going to compare multiple studies that all conducted similar tests.
+
+# Data 
+Shapesplosion is an online game in which a person is expected to place specifically shaped pegs into the appropriate holes within a short time period. For several years students have used the Shapesplosion game to design an experiment and collect data. The following link allows you to play the game  (http://web.grinnell.edu/individuals/kuipers/stat2labs/Perfection.html). In this lab, we will review data data from multiple student groups that focused on a specific research question: 
+
+> "Does gender affect the time used to play the Shapesplosino game?"
+
+### Conducting a hypothesis on one study
+
+We will start our analysis with one study that is based on a sample size of ___. The following code will import your data and conduct a two-sample t-test.
+
+```{r message=FALSE}
+library(mosaic)
+library(ggplot2)
+```
+
+```{r}
+## Reading in the data
+group_data <- read.csv("cleaned_gender.csv")
+
+```
+
+
+```{r}
+## Conducting a two-sided t-test using the _____ dataset
+female <- group_data[group_data$gender == 0,]$TimeUsedSec
+male <- group_data[group_data$gender == 1,]$TimeUsedSec
+t_test<- t.test(male,female,alternative="two.sided")
+t_test
+```
+
+> Question 1: Use the code below to create a dotplot and boxplot of the data. Does it seem reasonable to use a two sample t-test for this data?
+
+
+```{r}
+group_data$gender = as.factor(group_data$gender)
+ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="") 
+```
+
+*Make sure all figures are numbered and labeled: Figure 1: Dotplot and boxplot of GroupNAME data (whatever group you selected)*
+
+> Questions 2: Write two to three sentences clearly stating conclusions you can draw from this study. Please assume that the data was collected properly from a class of students in an introductory statistics class.
+
+*As the result above suggested, the p-value for two -sided t-test performed above on the overall group is 0.00369. It suggests that on an alpha level of 0.05, the probability of obtaining a mean difference as extreme as 2.92(test statistics) or -2.92 is less than 0.05. Therefore, just based on the result from this sample, we may conclude that gender does have an effect on the play time of the game.*
+
+### Conducting a hypothesis on a second study
+
+Let's repeat our analysis on a new study, using teh groupID "MATH22015".
+
+```{r}
+MATH22015<-filter(group_data, group_data$groupID=="MATH22015")
+MAT_female <- MATH22015[MATH22015$gender == 0,]$TimeUsedSec
+MAT_male <- MATH22015[MATH22015$gender == 1,]$TimeUsedSec
+MAT_t_test <- t.test(MAT_male,MAT_female,alternative="two.sided")
+MAT_pvalue <- MAT_t_test$p.value
+```
+This study resulted in a p-value of 0.0776. Using an alpha level of 0.05, this study would fail to reject the null hypothesis and concluded that gender does not make a difference in play time of the game.
+
+
+The graph also suggests that female players on average take less time to play the game than male players, contrary to our previous findings.
+```{r graph}
+MATH22015$gender= as.factor(MATH22015$gender)
+ggplot(data=MATH22015, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="") 
+```
+
+> Question 3: Write two to three sentences clearly explaining how two studies asking the same reserach questions with similar methodologies would get different results? Does this show evidence that one of the groups made an error somewhere in their data collection or analysis?
+
+### Comparing multiple hypothesis tests
+
+```{r}
+group_data$gender <- as.factor(group_data$gender)
+
+```
+
+In Part 1 of this activity, you compared two different studies that evaluated the effect of gender on completion time of the shapesplosion game. Several additional studies on gender were conducted by multiple groups over multiple years. The following code conducts t-test and creates boxplots for several of these groups.
+
+
+
+```{r plot, echo=TRUE}
+par(mar=c(1,1,1,1))
+par(mfrow = c(4,5))
+groupName <- c()
+pvalues <- c()
+
+tb <- as.data.frame(table(group_data$groupID))
+##Select groups that are under size 50
+tb2 <- tb[tb$Freq >= 5 & tb$Freq <= 50,]
+##Create a vector of groupID's whose size is between 25 and 50
+selected_groupID <- as.character(tb2$Var1)
+for (i in 1:length(selected_groupID)) {
+  female <- group_data[group_data$groupID == selected_groupID[i] & group_data$gender == 0,]$TimeUsedSec
+  male <- group_data[group_data$groupID == selected_groupID[i] & group_data$gender == 1,]$TimeUsedSec
+  if (length(female) > 1 & length(male) > 1) {
+    groupName <- cbind(groupName, selected_groupID[i])
+    p <- round(t.test(female, male)$p.value, digits = 3)
+    pvalues <- cbind(pvalues, p)
+    data1 <- group_data[group_data$groupID == selected_groupID[i],]
+    if (p < 0.05) {
+    boxplot(TimeUsedSec ~ gender,data=data1, col="green",      main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+    } else {
+      boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+    }
+  }
+}
+
+```
+
+Figure___ is a graphical representation of all 18 groups from the group dataset. The colored boxplots have p-value < 0.05.
+
+> Question 1: What is the range of p-values observed in these studies?
+
+> Question 2: How many groups had higher mean times for females? How many groups had higher mean times for males?
+
+> Question 3: Which graph visibly appears to show the biggest difference between genders? What reasons could explain why this group did not observe a significant p-value?
+
+> Question 4: Why do the p-values differ? 
+
+### Discussion: How credible is p-value?
+
+It is important to remember the definition of p-vlaue. In this context, it is the probability of obtaining a mean difference in play time between male and female players as extreme as we observed in our repective samples, on the premise that the null hypothesis–male and female players spend equal time on the game–is true.
+
+Therefore, if the null hypothesis is false in the first place, that is if the population mean of female playtime and male playtime are indeed different, p-value does not imply information as meaningful as we thought.
+
+
+Visualizing the distribution of points.
+
+
+
+
+

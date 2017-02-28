@@ -1,5 +1,5 @@
 ---
-title: "How meaningful is your p-vale?"
+title: "How meaningful is your p-value?"
 author: "Jinlin He, Yuan Wang"
 date: "February 13, 2017"
 output: html_document
@@ -12,7 +12,12 @@ knitr::opts_chunk$set(echo = TRUE)
 In order to better understand the meaning of a p-value, we are going to compare multiple studies that all conducted similar tests.
 
 ## Data 
-Shapesplosion is an on-line game in which a person is expected to place specifically shaped pegs into the appropriate holes within a short time period. For several years students have used the Shapesplosion game to design an experiment and collect data. The following link allows you to play the game (http://web.grinnell.edu/individuals/kuipers/stat2labs/Perfection.html). In this lab, we will review data data from multiple student groups that focused on a specific research question:
+Shapesplosion is an on-line game in which a person is expected to place specifically shaped pegs into the appropriate holes within a short time period. For several years students have used the Shapesplosion game to design an experiment and collect data. The following link allows you to play the game (http://web.grinnell.edu/individuals/kuipers/stat2labs/Perfection.html). 
+```{r}
+![jhgfhgf](Screenshot.png)
+```
+
+In this lab, we will review data data from multiple student groups that focused on a specific research question:
 
 > “Does gender affect the time used to play Shapesplosion game?”
 
@@ -45,7 +50,8 @@ t_test
 
 ```{r graph1}
 group_data$gender= as.factor(group_data$gender)
-ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="top") + labs(title="Figure 1: boxplot of full dataset") 
+ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="top") + labs(title="Figure 1: boxplot of full dataset") +   stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3)
+
 ```
 
 
@@ -76,7 +82,8 @@ The graph also suggests that female players on average take less time to play th
 ```{r graph}
 MATH22015$gender= as.factor(MATH22015$gender)
 
-ggplot(data=MATH22015, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="Figure 2: boxplot of MATH22015 dataset") + aes(colour = gender)
+ggplot(data=MATH22015, aes(x=gender, y=MATH22015$TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="Figure 2: boxplot of MATH22015 dataset") + aes(colour = gender)+ 
+  stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3)
 ```
 
 Take another subdataset with groupID = hjf190f14, let us again conduct a hypothesis test on this group.
@@ -92,9 +99,9 @@ mth_t_test
 With a p-value of 0.15, we surely fail to reject the null hypothesis when alpha = 0.1. Now let us take a look at the graph, from which we observe that male mean seems to be much higher than female mean, but still the hypothesis test failed.
 
 ```{r}
-mth22602$gender= as.factor(mth22602$gender)
-
-ggplot(data=mth22602, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="Figure 3: boxplot of mth22602 dataset") + aes(colour = gender)
+mth22602$gender<- as.factor(mth22602$gender)
+mth22602_mean <- data.frame(gender = c(1,0), value = c(mean(mth22602[mth22602$gender ==1,]$TimeUsedSec), mean(mth22602[mth22602$gender ==0,]$TimeUsedSec)))
+ggplot(data=mth22602, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="Figure 3: boxplot of mth22602 dataset") + aes(colour = gender) +  stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3) 
 ```
 
 > Question 3: Write three to four sentences clearly explaining how three studies asking the same research questions with similar methodologies would get different results? Does this show evidence that one of the groups made an error somewhere in their data collection or analysis?

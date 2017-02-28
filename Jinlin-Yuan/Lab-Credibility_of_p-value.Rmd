@@ -16,10 +16,11 @@ Shapesplosion is an on-line game in which a person is expected to place specific
 
 > “Does gender affect the time used to play Shapesplosion game?”
 
+## Part One
 
-## Conducting a hypothesis on one study
+### Conducting a hypothesis on one study
 
-We will start our analysis with one study that is based on a sample size of ___. The following code will import your data and conduct a two-sample t-test.
+We will start our analysis with one study that is based on the entire sample. The following code will import your data and conduct a two-sample t-test.
 
 ``` {r, results='hide', message=FALSE}
 library(mosaic)
@@ -33,7 +34,7 @@ group_data <- read.csv("cleaned_gender.csv")
 
 
 ```{r}
-## Consucting a two-sided t-test using the _____ dataset
+## Consucting a two-sided t-test using the entire dataset
 female <- group_data[group_data$gender == 0,]$TimeUsedSec
 male <- group_data[group_data$gender == 1,]$TimeUsedSec
 t_test<- t.test(male,female,alternative="two.sided")
@@ -44,10 +45,9 @@ t_test
 
 ```{r graph1}
 group_data$gender= as.factor(group_data$gender)
-ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="top") + labs(title="") 
+ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="top") + labs(title="Figure 1: boxplot of full dataset") 
 ```
 
-*Make sure all figures are numbered and labeled: Figure 1: Dotplot and boxplot of GroupNAME data (whatever group you selected).*
 
 > Question 2: Write two to three sentences clearly stating conclusions can you draw from this study. Please assume that the data was collected properly from a class of ___ students in an introductory statistics class. 
 
@@ -55,9 +55,9 @@ ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + aes(co
 
 
 
-## Conducting a hypothesis test on a second study
+### Conducting two hypothesis tests on a second study
 
-Let’s repeat our analysis on a new study, using the group_ID “MATH22015”
+Let’s repeat our analysis on a new study, using the group_ID “MATH22015”, which is a subset of the full dataset.
 
 
 ```{r}
@@ -68,7 +68,7 @@ MAT_t_test <- t.test(MAT_male,MAT_female,alternative="two.sided")
 
 ```
 
-This study resulted in a p-value of 0.0776. Using an alpha level of 0.05, this study would fail to reject the null hypothesis and concluded that gender does not make a difference in play time of the game.
+This study resulted in a p-value of 0.0776. Using an alpha level of 0.1, this study would have evidence to reject the null hypothesis and concluded that gender indeed makes a difference in play time of the game.
 
 The graph also suggests that female players on average take less time to play the game than male players, contrary to our previous findings.
 
@@ -76,12 +76,32 @@ The graph also suggests that female players on average take less time to play th
 ```{r graph}
 MATH22015$gender= as.factor(MATH22015$gender)
 
-ggplot(data=MATH22015, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="") + aes(colour = gender)
+ggplot(data=MATH22015, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="Figure 2: boxplot of MATH22015 dataset") + aes(colour = gender)
 ```
 
-> Question 3: Write two to three sentences clearly explaining how two studies asking the same research questions with similar methodologies would get different results? Does this show evidence that one of the groups made an error somewhere in their data collection or analysis?
+Take another subdataset with groupID = hjf190f14, let us again conduct a hypothesis test on this group.
 
-## Comparing multiple hypothesis tests
+```{r}
+mth22602 <-group_data[group_data$groupID=="mth22602",]
+mth_female <- mth22602[mth22602$gender == 0,]$TimeUsedSec
+mth_male <- mth22602[mth22602$gender == 1,]$TimeUsedSec
+mth_t_test <- t.test(mth_male, mth_female, alternative="two.sided")
+mth_t_test
+```
+
+With a p-value of 0.15, we surely fail to reject the null hypothesis when alpha = 0.1. Now let us take a look at the graph, from which we observe that male mean seems to be much higher than female mean, but still the hypothesis test failed.
+
+```{r}
+mth22602$gender= as.factor(mth22602$gender)
+
+ggplot(data=mth22602, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="Figure 3: boxplot of mth22602 dataset") + aes(colour = gender)
+```
+
+> Question 3: Write three to four sentences clearly explaining how three studies asking the same research questions with similar methodologies would get different results? Does this show evidence that one of the groups made an error somewhere in their data collection or analysis?
+
+## Part Two
+
+### Comparing multiple hypothesis tests
 
 ```{r}
 group_data$gender <- as.factor(group_data$gender)
@@ -92,7 +112,7 @@ In Part 1 of this activity, you compared two different studies that evaluated th
 
 
 ```{r plot, echo=TRUE}
-par(mar=c(1,1,1,1))
+par(mar=c(2,2,2,2))
 par(mfrow = c(4,5))
 groupName <- c()
 pvalues <- c()
@@ -112,21 +132,22 @@ for (i in 1:length(selected_groupID)) {
     data1 <- group_data[group_data$groupID == selected_groupID[i],]
     if (p < 0.1) {
       if (mean(female) < mean(male)) {
-      boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+        boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+      } else {
+        boxplot(TimeUsedSec ~ gender,data=data1, col="red", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+      }
     } else {
-      boxplot(TimeUsedSec ~ gender,data=data1, col="red", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+      boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
     }
-  } else {
-    boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
-  }
-    
   }
 }
+
+mtext("Figure 4", outer=TRUE,  cex=1, line=-1)
 
 ```
 
 
-Figure___ is a graphical representation of all 18 groups from the group dataset. The colored boxplots have p-value < 0.05.
+Figure 4is a graphical representation of all 18 groups from the group dataset. The colored boxplots have p-value < 0.05.
 
 
 > Question 1: What is the range of p-values observed in these studies?

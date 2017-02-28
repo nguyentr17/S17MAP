@@ -15,7 +15,14 @@ In order to better understand the meaning of a p-value, we are going to compare 
 
 *Need to add more explanation of the game and a screenshot of the game webpage*
 
-Shapesplosion is an on-line game in which a person is expected to place specifically shaped pegs into the appropriate holes within a short time period. For several years students have used the Shapesplosion game to design an experiment and collect data. The following link allows you to play the game (http://web.grinnell.edu/individuals/kuipers/stat2labs/Perfection.html). In this lab, we will review data data from multiple student groups that focused on a specific research question:
+Shapesplosion is an on-line game in which a person is expected to place specifically shaped pegs into the appropriate holes within a short time period. For several years students have used the Shapesplosion game to design an experiment and collect data. The following link allows you to play the game (http://web.grinnell.edu/individuals/kuipers/stat2labs/Perfection.html). 
+
+Here is a screenshot of the start page where the user can choose there preferred settings.
+
+![](Shapesplosion.png)
+
+
+In this lab, we will review data data from multiple student groups that focused on a specific research question:
 
 > “Does gender affect the time used to play Shapesplosion game?”
 

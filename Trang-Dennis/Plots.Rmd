@@ -11,7 +11,7 @@ First, we want to import real time data from website. For the future convinence,
 library(treemap)
 library(dplyr) 
 library(mosaic)
-library(ggplot2)
+library(ggplot2)lib
 library(data.table)
 library(gplots)
 

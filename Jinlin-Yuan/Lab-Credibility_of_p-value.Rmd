@@ -4,7 +4,7 @@ author: "Jinlin He, Yuan Wang"
 date: "February 13, 2017"
 output: html_document
 ---
-
+//////////////search for packages to easy format .rmd
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -27,12 +27,12 @@ In this lab, we will review data data from multiple student groups that focused 
 > “Does gender affect the time used to play Shapesplosion game?”
 
 ## Part One
-
-### Conducting a hypothesis on one study
+////////////Note 
+### Conducting a hypothesis test on the overall dataset
 
 We will start our analysis with one study that is based on the entire sample. The following code will import your data and conduct a two-sample t-test.
 
-``` {r, results='hide', message=FALSE}
+```{r,results='hide', message=FALSE}
 library(mosaic)
 library(ggplot2)
 ```
@@ -55,8 +55,8 @@ t_test
 
 ```{r graph1}
 group_data$gender= as.factor(group_data$gender)
-ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="top") + labs(title="Figure 1: boxplot of full dataset") +   stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3)
-
+ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="right") + labs(title="Figure 1: boxplot of full dataset") +   stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3)
+## Set figure size
 ```
 
 
@@ -70,7 +70,7 @@ ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + aes(co
 
 Let’s repeat our analysis on a new study, using the group_ID “MATH22015”, which is a subset of the full dataset.
 
-
+//////////////////##Description of the study time stamp/sample size
 ```{r}
 MATH22015<-group_data[group_data$groupID=="MATH22015",]
 MAT_female <- MATH22015[MATH22015$gender == 0,]$TimeUsedSec
@@ -91,7 +91,7 @@ ggplot(data=MATH22015, aes(x=gender, y=MATH22015$TimeUsedSec)) + geom_boxplot() 
   stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3)
 ```
 
-Take another subdataset with groupID = hjf190f14, let us again conduct a hypothesis test on this group.
+### Take another subdataset with groupID = hjf190f14, let us again conduct a hypothesis test on this group.
 
 ```{r}
 mth22602 <-group_data[group_data$groupID=="mth22602",]
@@ -106,14 +106,20 @@ With a p-value of 0.15, we surely fail to reject the null hypothesis when alpha 
 ```{r}
 mth22602$gender<- as.factor(mth22602$gender)
 mth22602_mean <- data.frame(gender = c(1,0), value = c(mean(mth22602[mth22602$gender ==1,]$TimeUsedSec), mean(mth22602[mth22602$gender ==0,]$TimeUsedSec)))
-ggplot(data=mth22602, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + theme(legend.position="top") + labs(title="Figure 3: boxplot of mth22602 dataset") + aes(colour = gender) +  stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3) 
+ggplot(data=mth22602, aes(x=gender, y=TimeUsedSec)) + geom_boxplot() + theme(legend.position="top") + labs(title="Figure 3: boxplot of mth22602 dataset") + aes(colour = gender) +  stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3) 
 ```
 
-> Question 3: Write three to four sentences clearly explaining how three studies asking the same research questions with similar methodologies would get different results? Does this show evidence that one of the groups made an error somewhere in their data collection or analysis?
+> Question 3: Write three to four sentences clearly explaining how two studies asking the same research questions with similar methodologies would get different results? Does this show evidence that one of the groups made an error somewhere in their data collection or analysis?
+
+////////////////////interval of possible p-value range 
+even when the H1 are 
+
+Statistics vary whenever we perform a study. Though population and methods remain identical
 
 ## Part Two
 
 ### Comparing multiple hypothesis tests
+//////////////adding two graphs
 
 ```{r}
 group_data$gender <- as.factor(group_data$gender)
@@ -124,6 +130,7 @@ In Part 1 of this activity, you compared two different studies that evaluated th
 
 
 ```{r plot, echo=TRUE}
+### Add margin to add titles
 par(mar=c(2,2,2,2))
 par(mfrow = c(4,5))
 groupName <- c()
@@ -159,7 +166,7 @@ mtext("Figure 4", outer=TRUE,  cex=1, line=-1)
 ```
 
 
-Figure 4 is a graphical representation of all 18 groups from the group dataset. The colored boxplots have p-value < 0.05.
+Figure 4 is a graphical representation of all 18 groups from the group dataset. The colored boxplots have p-value < 0.1.
 
 
 > Question 1: What is the range of p-values observed in these studies?

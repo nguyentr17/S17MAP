@@ -26,6 +26,11 @@ This is a messy dataset for a couple of reasons:
 + __Factors__: There are 3 self-input factors and Tangram set up them into 3 different columns. Therefore, we need to search through all 3 columns for a specific factor (i.e. Gender).  
 
 # Step 1: Remove extreme outliers
+```{r}
+
+
+
+```
 
 # Step 2: Use log transformation to reduce the variability of __TimeUsed__ variable  
 

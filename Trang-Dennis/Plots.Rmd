@@ -19,6 +19,7 @@ if (!require("devtools")) install.packages("devtools")
 devtools::install_github("ropensci/plotly")
 
 library(plotly)
+
 tangrams_data <- fread("http://statgames.tietronix.com/tangrams/webreporter.php?game=tangrams&GroupName=&winlose=both&random=false&rows=&type=csv")
 tangrams_data$HintsEnabled <- as.factor(tangrams_data$HintsEnabled)
 tangrams_data$HintsUsed <- as.factor(tangrams_data$HintsUsed)

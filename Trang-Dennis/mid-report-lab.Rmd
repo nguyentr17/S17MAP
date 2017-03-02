@@ -36,10 +36,9 @@ tangram <- tangram[tangram$TimeUsed > 0 & tangram$TimeUsed < 3600,]
 
 ```
 
-```
+
 # Step 2: Use log transformation to reduce the variability of __TimeUsed__ variable  
 ```{r}
-
 tangram$TimeUsed_log <- log(tangram$TimeUsed)
 ```
 
@@ -120,7 +119,6 @@ ggplot(gen_won_res_count, aes(x=Var1, y=Freq,fill=Var2)) + geom_bar(stat="identi
 ```
 We are also interest in the gender difference within one game. In order to do that, we plot a double bar chart. With the y-axis as the average of Time_used and the X-axis as Puzzle Name. 
 ```{r}
-
 gen_tangram_statsgame <- gen_tangram[gen_tangram$PuzzleName %in% statsgame,]
 gen_tangram_count <- count_(gen_tangram_statsgame,"PuzzleName")
 gen_tangram_count <- gen_tangram_count[order(-gen_tangram_count$n),]
@@ -128,46 +126,37 @@ ggplot(gen_tangram_statsgame[gen_tangram_statsgame$PuzzleName %in% head(gen_tang
   geom_bar(position = "dodge", stat = "identity")
 ```
 
-Another factor we are having is STEM major. 
+
+# (b) Look at multiple variables at the same time  
+In this section, we will use _CART analysis_ and _Random Forest_ to take all possible variables into consideration to predict Time Used. Here is the list of predicting variables:  
++ _Hints Enabled_: 0 or 1
++ _Hints Used_: continuous variable
++ _Number of Shapes_: continuous variable
++ _Gender_: F or M  
+# Divide the dataset into train and test data:
 ```{r}
-### Factor to be filtered: STEM
-### Step 1: Create a key set: A set of criteria for regular expressions/ key patterns
-stem <- c("stem")
-stem_Y <- c("^y")
-stem_N <- c("^n")
-### Step 2: Create a variable to identify whether a study includes GENDER as a factor or not
-
-tangram$factor_STEM <- mapply(ismatch, stem, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)
-### Step 3: Create a variable for levels of STEM if STEM is a factor in that study
-### level_stem_fun
-### @input: x is the col index (given by factor_gender)
-###         y is the row index
-### @return: -1 if no gender factor indicated
-###          -2 if gender factor indicated but level_gen key patterns not matched (require future manual check)
-
-###           Y/N
-### @note: this function is specific to STEM only. Needs to think about how to generalize it. 
-level_stem_fun <- function(x, y) {
-  return (ifelse(x == 0, -1, 
-                 ifelse(grepl(paste(stem_Y, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
-                        "Y", 
-                        ifelse(grepl(paste(stem_N, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
-                               "N",-2))))
-}
-
-tangram$level_stem <- mapply(level_stem_fun, tangram$factor_STEM, 1:nrow(tangram), SIMPLIFY = TRUE)
-
-stem_tangram <- tangram[tangram$level_stem == "Y"|tangram$level_stem == "N",]
+library(dplyr)
+gender_tangram <- tangram[tangram$level_gender %in% c("F", "M"), ]
+# Used 75:25 split
+train_index <- sample(1:nrow(gender_tangram),size = 0.75*nrow(gender_tangram))
+gender_train <- gender_tangram[train_index, ]
+gender_test <- gender_tangram[-train_index,]
+```
+# Random Forest  
+```{r}
+library(randomForest)
+set.seed(123)
+gender_train$level_gender <- as.factor(gender_train$level_gender)
+rf <- randomForest::randomForest(TimeUsed ~ level_gender + HintsEnabled + HintsUsed, 
+                                 data = na.omit(gender_train),
+                                 importance = TRUE,
+                                 ntree = 1000)
+imp <- as.data.frame(sort(importance(rf)[,1],decreasing = TRUE),optional = T)
+names(imp) <- "% Inc MSE"
+imp
 ```
 
 
-```{r}
-stem_tangram_statsgame <- stem_tangram[stem_tangram$PuzzleName %in% statsgame,]
-stem_tangram_count <- count_(stem_tangram_statsgame,"PuzzleName")
-stem_tangram_count <- stem_tangram_count[order(-stem_tangram_count$n),]
-ggplot(stem_tangram_statsgame[stem_tangram_statsgame$PuzzleName %in% head(stem_tangram_count$PuzzleName,5),], aes(fill = level_stem, y = TimeUsed_log, x = PuzzleName)) +
-  geom_bar(position = "dodge", stat = "identity")
-```
 
 # Approach 2: View the dataset as a cumulation of different studies  
 This approach views the whole dataset as a collection of different samples. We tested this approach for the question: _"Does gender influence the time used?"_ ran through all samples and calculated p-value for each sample to see the distribution of p-value in the whole dataset. The variability of p-value in this distribution aims at demonstrating to statistics students how unreliable p-value can be sometimes. Some people argue that that increasing sample size is the only thing we need to in order to have a reliable p-value. However, in the scatterplot of sample size and p-value, we can see that there is not a clear correlation. There are other factors in design of experiments researchers need to pay attention to in order to guarantee the reliability of p-value.      

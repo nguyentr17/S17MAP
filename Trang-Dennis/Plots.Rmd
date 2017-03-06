@@ -162,6 +162,7 @@ stem <- c("stem")
 stem_Y <- c("^y")
 stem_N <- c("^n")
 tangram$factor_STEM <- mapply(ismatch, stem, tangram$Factor1, tangram$Factor2, tangram$Factor3, SIMPLIFY = TRUE)
+
 level_stem_fun <- function(x, y) {
   return (ifelse(x == 0, -1, 
                  ifelse(grepl(paste(stem_Y, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
@@ -304,6 +305,22 @@ ggplot(temp, aes(x = HintsUsed , y = TimeUsed,fill=level_gender)) +
 ```
 
 
+
+classfication tree:
+
+```{r}
+
+tree1 <- rpart(TimeUsed ~ HintsUsed+NumShapes+level_gender,method = "anova",  data=gen_tangram)
+
+
+library(party)
+puzzlename <- c("A Nice Lighthouse", "Diamond", "House of Tangrams", "The Hook")
+gen_tangram$PuzzleName2 <- ifelse(gen_tangram$PuzzleName %in% puzzlename, gen_tangram$PuzzleName, "Others")
+gen_tangram$PuzzleName2 <- as.factor(gen_tangram$PuzzleName2)
+fit2 <- ctree(TimeUsed_log ~ PuzzleName2+level_gender, 
+   data=na.omit(gen_tangram))
+plot(fit2)
+```
 Our Concerns:
 In terms of data quality
     a. The value of the factor and level is open ended as well as seperate. It is hard to identify the key information in one data entry. 

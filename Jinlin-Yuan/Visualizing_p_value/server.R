@@ -26,19 +26,19 @@ function(input, output) {
                   ## made changes 2
                   xlim=c(low_range,high_range),
                   ylim = c(0,height), 
-                  breaks=5)
+                  breaks=20)
              curve(dnorm(x, mean = input$popu_mean1, sd = input$sd1), 
                    col="red", lwd=2, add=TRUE, yaxt="n")
            },
            "skewed" = {
              ##hx1 <- rchisq(500, df=4) + input$popu_mean1
-             hist(hx1(), prob = TRUE, main="Skewed", cex.axis=.8, xlim=c(low_range,high_range), ylim = c(0,height),breaks=5)
+             hist(hx1(), prob = TRUE, main="Skewed", cex.axis=.8, xlim=c(low_range,high_range), ylim = c(0,height),breaks=20)
              curve(dchisq(x, df = 4), 
                    col="red", lwd=2, add=TRUE, yaxt="n")     
            },
            "uniform" =  {
              ##hx1 <- runif(500, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1)
-             hist(hx1(), prob = TRUE, main="Uniform", cex.axis=.8, xlim=c(-3,3), breaks=5)
+             hist(hx1(), prob = TRUE, main="Uniform", cex.axis=.8, xlim=c(-3,3), breaks=20)
              curve(dunif(x, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1), 
                    col="red", lwd=2, add=TRUE, yaxt="n")
            }
@@ -52,7 +52,7 @@ function(input, output) {
             ##   hx2 <- rnorm(500, input$popu_mean2, input$sd2)
                half_width = input$popu_mean2 + 4*input$sd2
                height = 0.4/input$sd2
-               hist(hx2(), prob = TRUE, main="Normal", cex.axis=.8, xlim=c(low_range,high_range),ylim = c(0,height), breaks=5)
+               hist(hx2(), prob = TRUE, main="Normal", cex.axis=.8, xlim=c(low_range,high_range),ylim = c(0,height), breaks=20)
                curve(dnorm(x, mean = input$popu_mean2, sd = input$sd2), 
                      col="blue", lwd=2, add=TRUE, yaxt="n")},
              
@@ -60,13 +60,13 @@ function(input, output) {
             ##   hx2 <- rchisq(500, df=4) + input$popu_mean2
                half_width = input$popu_mean2 + 4*input$sd2
                height = 0.4/input$sd2
-               hist(hx2(), prob = TRUE, main="Skewed", cex.axis=.8, xlim=c(low_range,high_range), ylim = c(0,height),breaks=5)
+               hist(hx2(), prob = TRUE, main="Skewed", cex.axis=.8, xlim=c(low_range,high_range), ylim = c(0,height),breaks=20)
                curve(dchisq(x, df = 4), 
                      col="blue", lwd=2, add=TRUE, yaxt="n")}, 
              
              "uniform" = {
               ## hx2 <- runif(500, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2)
-               hist(hx2(), prob = TRUE, main="Uniform", cex.axis=.8, xlim=c(-3,3), breaks=5)
+               hist(hx2(), prob = TRUE, main="Uniform", cex.axis=.8, xlim=c(-3,3), breaks=20)
                curve(dunif(x, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2), 
                      col="blue", lwd=2, add=TRUE, yaxt="n")}
       )

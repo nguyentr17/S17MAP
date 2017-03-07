@@ -58,7 +58,7 @@ ggplot(data = tangram, aes(x=interaction(HintsEnabled,HintsUsed,lex.order = TRUE
 
 As mentioned above, we plan to conduct analyses on multiple experiments identified by _Group Name_. However, there are some typos and cap inconsistency in the dataset, which is very typical of self-input data.  
 ```{r}
-tangram$GroupName <- tolower(tangram_$GroupName)
+tangram$GroupName <- tolower(tangram$GroupName)
 ```
 
 We do notice that there are multiple useful information in the customized factor and level section. The most interesting one is the gender information. We want to extract data with gender information from the larger dataset. 
@@ -134,10 +134,11 @@ This is a list of methods we will use:
 Recall that from now on, we will use **gen_tangram** to conduct our analysis.  
 
 ### T-test  
-We start with the basic __T-test__ on all experiments with ID ( _Group Name_) to see whether the difference in _Time Used (log)_ between _Female_ and _Male_ group is significant at $\alpha = 0.1$.   
-> Question 1: Use the following code to conduct t-test on all experiments with ID in the dataset and describe the distribution of p-value     
+We start with the basic __T-test__ on all experiments with ID ( _Group Name_) to see whether the difference in _Time Used (log)_ between _Female_ and _Male_ group is significant at $\alpha = 0.1$.  
 
-```{r}
+> Question 1: Use the following code to conduct t-test on all experiments with ID in the dataset and describe the distribution of p-value?       
+
+```{r results = "hide"}
 
 tangram_pvalue <- as.data.table(gen_tangram)
 tangram_pvalue[, `:=`( SampleSize = .N) , by = GroupName] 
@@ -154,7 +155,12 @@ ttestFun <- function(dat) {
     c("p.value" = -1, "samplesize" = mean(dat$SampleSize))
   }
 }
-
+alpha <- 0.1
+gender_pval_dist <- ddply(tangram_pvalue, ~ GroupName, ttestFun)
+gender_pval_dist$significant <-(gender_pval_dist$p.value < alpha)*1
+gender_pval_dist$significant <- as.factor(gender_pval_dist$significant)
+```
+```{r}
 ggplot(gender_pval_dist[gender_pval_dist$p.value != -1,], aes(p.value)) +
   geom_histogram(binwidth = 0.01, position = "identity", alpha = 0.5, colour = "black", fill = "white")
 ```
@@ -162,10 +168,7 @@ ggplot(gender_pval_dist[gender_pval_dist$p.value != -1,], aes(p.value)) +
 > Question 2: We also want to see how p-value changes relative to the experiment's sample size. Use the following code to draw a scatterplot of p-value vs. sample size. How many experiments show a signficant p-value? Does big sample size guarantee a stable and reliable p-value?    
 
 ```{r}
-alpha <- 0.1
-gender_pval_dist <- ddply(tangram_pvalue, ~ GroupName, ttestFun)
-gender_pval_dist$significant <-(gender_pval_dist$p.value < alpha)*1
-gender_pval_dist$significant <- as.factor(gender_pval_dist$significant)
+
 ggplot(gender_pval_dist[gender_pval_dist$p.value != -1,], aes(x = samplesize, y = p.value)) + 
   geom_point(aes(colour = significant)) +
   scale_color_manual(values=c("black", "red")) +
@@ -214,7 +217,7 @@ ggplot(gender_samplingdis, aes(log_timeused_mean, fill = level_gender)) +
 
 
 ### ANOVA 
-The limitation of t-test is that we cannot take multiple factors into consideration. Therefore, the analysis might not be reliable due to the existence of lurking variables. Therefore, we will proceed with ANOVA to see how the conclusion changes when we put other factors besides _Gender_ into the analysis.   
+The limitation of t-test is that we cannot take multiple factors into consideration. Therefore, the analysis might not be reliable due to the existence of lurking variables. Therefore, we will proceed with ANOVA to see how the conclusion changes when we put other factors besides _Gender_ into the analysis.     
 
 ```{r, message=FALSE, warning=FALSE}
 puzzlename <- c("A Nice Lighthouse", "Diamond", "House of Tangrams", "The Hook")
@@ -230,6 +233,7 @@ ggplot(gen_tangram,aes(level_gender,TimeUsed_log)) +
   geom_boxplot(varwidth = TRUE,fill = "white", colour = "#3366FF",
                outlier.colour = "red", outlier.shape = 1) 
 ```
+  
 > Question 4: Through the p-value of this anova test, we can conclude that there are difference between different gender. However, can we conclude that that conclusion can apply to any puzzle we have. In another words, does the conclusion derived from a big dataset apply to small subsets?  
 
 When we take a look at the "A Nice Lighthouse"
@@ -242,7 +246,7 @@ ggplot(light,aes(level_gender,TimeUsed_log)) +
                outlier.colour = "red", outlier.shape = 1)
 ```
 
-Similary, that can apply to Diamond. 
+Similary, that can apply to Diamond.  
 ```{r}
 diamond <- filter(gen_tangram,PuzzleName2 == "Diamond")
 test.diamond <- aov(TimeUsed_log ~ level_gender, data=diamond)
@@ -252,7 +256,7 @@ ggplot(diamond,aes(level_gender,TimeUsed_log)) +
                outlier.colour = "red", outlier.shape = 1)
 ```
 
-And House of Tangram
+And House of Tangram  
 ```{r}
 house <- filter(gen_tangram,PuzzleName2 == "House of Tangrams")
 test.house <- aov(TimeUsed_log ~ level_gender, data=house)

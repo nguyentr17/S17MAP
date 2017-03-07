@@ -64,9 +64,14 @@ ttestFun <- function(dat) {
   if (sum(dat$level_gender == "F") > 1 && sum(dat$level_gender == "M") > 1) {
     the_fit <- t.test(TimeUsed_log ~ level_gender, data = dat)
     #setNames(the_fit$p.value, "p.value")}
-    c("p.value" = the_fit$p.value, "samplesize" = mean(dat$SampleSize))}
+    c("p.value" = the_fit$p.value, "samplesize" = mean(dat$SampleSize),
+      "F_mean" = mean(dat[dat$level_gender == "F",]$TimeUsed_log),
+      "M_mean" = mean(dat[dat$level_gender == "M",]$TimeUsed_log),
+      "F_SD" = sd(dat[dat$level_gender == "F",]$TimeUsed_log),
+      "M_SD" = sd(dat[dat$level_gender == "M",]$TimeUsed_log))}
   else {
-    c("p.value" = -1, "samplesize" = mean(dat$SampleSize))
+    c("p.value" = -1, "samplesize" = mean(dat$SampleSize),
+      "F_mean" = -1, "M_mean" = -1, "F_SD" = NA, "F_SD" = NA)
   }
 }
 # 1. Scatterplot of pvalue vs. sample size
@@ -119,20 +124,17 @@ ggplot(gender_samplingdis, aes(log_timeused_mean, fill = level_gender)) +
   ylim(0.00, 1.00)
   
 ### Calculate effect size for samples that show statistically significant samples
-gender_samp_significant <- gender_samplingdis[gender_samplingdis$p.value < 0.05 && gender_samplingdis$p.value >= 0, ]
+gender_samp_significant <- gender_pval_dist[gender_pval_dist$p.value < 0.1 & gender_pval_dist$p.value >= 0, ]
 effectsize <- function(dat) {
-  if (dat$p.value != -1) {
-  M1 <- dat[dat$level_gender == 'F',]$log_timeused_mean
-  M2 <- dat[dat$level_gender == 'M',]$log_timeused_mean
-  s1 <- dat[dat$level_gender == 'F',]$sd
-  s2 <- dat[dat$level_gender == 'M',]$sd
+  M1 <- dat$F_mean
+  M2 <- dat$M_mean
+  s1 <- dat$F_SD
+  s2 <- dat$M_SD
   s.pooled <- sqrt((s1*s1+s2*s2)/2)
-  abs(M1-M2)/s.pooled
-  }
-  -1
+  c("effectsize" = abs(M1 - M2)/s.pooled)
 }
+ddply(gender_samp_significant, ~GroupName, effectsize)
 
-class(gender)
 
 
 

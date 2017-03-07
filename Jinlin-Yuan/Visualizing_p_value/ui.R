@@ -44,8 +44,9 @@ fluidPage(
       plotOutput("distPlot1"),
       ## Made changes: plotted seperately
       plotOutput("distPlot2"),
-      plotOutput("distPlot3")
-      
+      plotOutput("distPlot3"),
+      verbatimTextOutput("test_stats")
+    #  textOutput("mean_diff")
     )
     ))
 

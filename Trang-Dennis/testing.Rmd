@@ -1,0 +1,106 @@
+---
+title: "Hypothesis testing"
+author: "Dennis Liu"
+date: "2/13/2017"
+output: html_document
+---
+
+
+First, we want to import real time data from website. For the future convinence, we change the type of the column into factor and some into numeric. 
+#if not install
+```{r, message=FALSE, warning=FALSE}
+library(treemap)
+library(dplyr) 
+library(mosaic)
+library(ggplot2)
+library(data.table)
+if (!require("devtools")) install.packages("devtools")
+devtools::install_github("ropensci/plotly")
+library(plotly)
+tangrams_data <- fread("http://statgames.tietronix.com/tangrams/webreporter.php?game=tangrams&groupID=&winlose=both&random=false&rows=&type=csv")
+tangrams_data$HintsEnabled <- as.factor(tangrams_data$HintsEnabled)
+tangrams_data$HintsUsed <- as.factor(tangrams_data$HintsUsed)
+tangrams_data$Won <- as.factor(tangrams_data$Won)
+tangrams_data$TimerHint <- as.factor(tangrams_data$TimerHint)
+tangrams_data$TimerDisplay <- as.factor(tangrams_data$TimerDisplay)
+tangrams_data$RequestedTime <- as.numeric(tangrams_data$RequestedTime)
+tangrams_data$NumClicks <- as.numeric(tangrams_data$NumClicks)
+tangrams_data$TimeUsed <- as.numeric(tangrams_data$TimeUsed)
+tangrams_data$NumShapes <- as.numeric(tangrams_data$NumShapes)
+```
+
+
+
+
+```{r}
+
+tangram_tested <- as.data.table(tangram)
+tangram_tested$level_gender[tangram_tested$level_gender == -2] <- "Others"
+tangram_tested$GroupName <- tolower(tangram_tested$GroupName) ### ASSUMPTION: case-insenstive for group name
+# filtering out null names and groups with small sample size (< 5)
+tangram_tested <- tangram_tested[tangram_tested$GroupName != "",]
+
+
+# Only include 2 levels of gender: Female and Male
+tangram_pvalue <- tangram_tested[tangram_tested$level_gender %in% c("F", "M"),]
+tangram_pvalue[, `:=`( SampleSize = .N) , by = GroupName] 
+tangram_pvalue <- tangram_pvalue[tangram_pvalue$SampleSize >= 5,]
+ttestFun <- function(dat) {
+  if (sum(dat$level_gender == "F") > 1 && sum(dat$level_gender == "M") > 1) {
+    the_fit <- t.test(TimeUsed ~ level_gender, data = dat)
+    #setNames(the_fit$p.value, "p.value")}
+    c("p.value" = the_fit$p.value, "samplesize" = mean(dat$SampleSize))}
+  else {
+    c("p.value" = -1, "samplesize" = mean(dat$SampleSize))
+  }
+}
+
+# 1. Scatterplot of pvalue vs. sample size
+
+alpha <- 0.1
+gender_pval_dist <- ddply(tangram_pvalue, ~ GroupName, ttestFun)
+gender_pval_dist$significant <-(gender_pval_dist$p.value < alpha)*1
+gender_pval_dist$significant <- as.factor(gender_pval_dist$significant)
+ggplot(gender_pval_dist[gender_pval_dist$p.value != -1,], aes(x = samplesize, y = p.value)) + 
+  geom_point(aes(colour = significant)) +
+  scale_color_manual(values=c("black", "red")) +
+  geom_hline(aes(yintercept = alpha), color = "red") +
+  geom_text(aes(100,0.1,label = "Significant level = 0.1", vjust = -1), color = "red") +
+  scale_x_continuous(name="Sample Size", limits=c(0, 125)) +
+  scale_y_continuous(name="t-test p-value", limits=c(0, 1), breaks = seq(0,1, by = 0.1)) 
+
+# 2. Histogram of p-value 
+ggplot(gender_pval_dist[gender_pval_dist$p.value != -1,], aes(p.value)) +
+  geom_histogram(binwidth = 0.01, position = "identity", alpha = 0.5, colour = "black", fill = "white")
+  
+
+# 3. Overlaid histogram for means (Female vs Male)
+gender_samplingdis <- tangram_tested[tangram_tested$level_gender != -1,]
+gender_samplingdis[,`:=`(SampleSize = .N), by = GroupName]
+gender_samplingdis[, `:=`(log_timeused_mean = mean(TimeUsed), timeused_mean = mean(timeused)), by = c("GroupName", "level_gender")]
+gender_samplingdis[, `:=`(n = .N, sd = sd(TimeUsed)), by = c("GroupName", "level_gender")]
+gender_samplingdis <- gender_samplingdis[,c("GroupName", "level_gender", "SampleSize", "timeused_mean", "log_timeused_mean","n","sd"), with = FALSE]
+gender_samplingdis <- gender_samplingdis[!duplicated(gender_samplingdis),]
+
+### Aggregate data for vertical lines
+gender_samplingdis_vline <- gender_samplingdis %>%
+  group_by(level_gender) %>%
+  summarise(log_timeused_mean = mean(log_timeused_mean), timeused_mean = mean(timeused_mean))
+
+ggplot(gender_samplingdis, aes(timeused_mean, fill = level_gender)) + 
+  geom_density(alpha = 0.3) +
+  geom_vline(data=gender_samplingdis_vline, aes(xintercept=timeused_mean,  colour=level_gender),
+               linetype="dashed", size=1) +
+  labs(title = "Distribution of Sample Means of Different Gender Levels") +
+  labs(x = "Sample Mean", y = "Density") +
+  ylim(0.00, 0.025) +
+  scale_x_continuous(minor_breaks = seq(0, 200, by = 25))
+
+ggplot(gender_samplingdis, aes(log_timeused_mean, fill = level_gender)) + 
+  geom_density(alpha = 0.3) +
+  geom_vline(data=gender_samplingdis_vline, aes(xintercept=log_timeused_mean,  colour=level_gender),
+               linetype="dashed", size=1) +
+  labs(title = "Distribution of Sample Means of Different Gender Levels") +
+  labs(x = "Sample Mean (log)", y = "Density") +
+  ylim(0.00, 1.00)
+```

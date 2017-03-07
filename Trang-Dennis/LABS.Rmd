@@ -1,0 +1,154 @@
+---
+title: "LAB1"
+author: "Dennis Liu"
+date: "3/6/2017"
+output: html_document
+---
+
+First, we want to import real time data from website. For the future convinence, we change the type of the column into factor and some into numeric. 
+```{r, message=FALSE, warning=FALSE}
+library(treemap)
+library(dplyr) 
+library(mosaic)
+library(ggplot2)
+library(data.table)
+library(gplots)
+library(RCurl)
+url <- "http://statgames.tietronix.com/tangrams/webreporter.php?game=tangrams&groupID=&winlose=both&random=false&rows=&type=csv"
+tangram_data <- read.csv(textConnection(readLines(url)), stringsAsFactors = F)
+tangram_data$RequestedTime <- as.numeric(tangram_data$RequestedTime)
+tangram_data$NumClicks <- as.numeric(tangram_data$NumClicks)
+tangram_data$TimeUsed <- as.numeric(tangram_data$TimeUsed)
+tangram_data$NumShapes <- as.numeric(tangram_data$NumShapes)
+```
+
+First, we want to take an initial look at the dataset. 
+```{r, message=FALSE, warning=FALSE}
+ggplot(data=tangram_data) + geom_point(mapping= aes(x=HintsUsed, y=TimeUsed))
+```
+
+As in the graph, we can see that there are multiple outliners which are biasing our data. Therefore, we want to eliminate those which are more than 3600 seconds(one hour). We also notice that the range of the data is relatively big. We want to take a log transformation on the data. The new dataset is tangram. 
+```{r, message=FALSE, warning=FALSE}
+tangram <- tangram_data[tangram_data$TimeUsed < 3600,]
+tangram <- tangram[tangram$TimeUsed > 0,]
+tangram$TimeUsed_log <- log(tangram$TimeUsed)
+ggplot(data = tangram, aes(x=interaction(HintsEnabled,HintsUsed,lex.order = TRUE), y=TimeUsed)) + geom_boxplot()  + theme(legend.position="none") + labs(title="Boxplot for filtered data")+xlab("HintsEnabled.HintsUsed")  
+```
+
+We do notice that there are multiple useful information in the customized factor and level section. The most interesting one is the gender information. We want to extract data with gender information from the larger dataset. 
+
+```{r, message=FALSE, warning=FALSE}
+tangram <- as.data.frame(tangram)
+### Factor to be filtered: GENDER
+### A set of criteria for regular expressions/ key patterns
+gen = c("^gen","^sex")
+gen_male = c("^m","^h")
+gen_female = c("^f", "^mu")
+
+### ismatch
+### @input: cond: a vector of key patterns (e.g. gen)
+###         x, y, z: 3 columns to look for key
+### @return: 0 if no match
+###          index of the factor (1, 2, 3() if there is match
+ismatch <- function(cond, x, y, z) {
+  x <- grep(paste(cond, collapse = "|"), c(x, y, z), ignore.case = T, value = FALSE)
+  return (ifelse(length(x), as.numeric(x), as.numeric(0)))
+}
+
+### level_gen_fun
+### @input: x is the col index (given by factor_gender)
+###         y is the row index
+### @return: -1 if no gender factor indicated
+###          -2 if gender factor indicated but level_gen key patterns not matched (require future manual check)
+###           M/F
+### @note: this function is specific to gender only. Needs to think about how to generalize it. 
+level_gen_fun <- function(x, y) {
+  return (ifelse(x == 0, -1, 
+                 ifelse(grepl(paste(gen_female, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                        "F", 
+                        ifelse(grepl(paste(gen_male, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                               "M",-2))))
+}
+tangram <- as.data.table(tangram)
+tangram[, factor_gender := ismatch(gen, Factor1, Factor2, Factor3), by = 1:nrow(tangram)]
+tangram <- as.data.frame(tangram)
+tangram$level_gender <- mapply(level_gen_fun, tangram$factor_gender, 1:nrow(tangram), SIMPLIFY = TRUE)
+gen_tangram <- tangram[tangram$level_gender == "F"|tangram$level_gender == "M",]
+```
+
+Now, there are two new columns in our dataset: factor_gender and level_gender. factor_gender indicates that whether this specific data entry contains gender information. level_gender indicates the specific gender information. In the level gender column, -1 means there is no gender information at all. -2 means that gender information is indicated, however, it does not match. F means Female and M means Male. We create a new dataset which contains all valid gender information. (gen_tangram)
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(gen_tangram,aes(level_gender,TimeUsed_log)) +
+  geom_boxplot(varwidth = TRUE,fill = "white", colour = "#3366FF",
+               outlier.colour = "red", outlier.shape = 1) 
+```
+
+We do notice that there are two difference types of puzzles: built-in or submitted. Due to the complexity of the submitted puzzles, We only consider the built-in ones.
+```{r, message=FALSE, warning=FALSE}
+statsgame <- c("Laughing Man", "Piano", "The Hook", "Complex Hexagon", "Diamond", "House of Tangrams",
+               "A Nice Lighthouse", "The Brain Buster", "A Simple Chair", "The Hat Wearer",
+               "The Acrobat", "The Bird", "Crouching Cat", "The Goat", "The Six", "The G",
+               "Andy's Puzzle", "Walking Person Puzzle", "A Medicine Jar", "Candle")
+gen_tangram$GameType <- "submitted"
+gen_tangram$GameType[gen_tangram$PuzzleName %in% statsgame] <- "statsgame"
+gen_tangram <- gen_tangram[gen_tangram$PuzzleName %in% statsgame,]
+```
+
+
+
+### T-test(Trang's P-value graphes)
+### need to include the logic behind others in the puzzle name
+
+```{r, message=FALSE, warning=FALSE}
+puzzlename <- c("A Nice Lighthouse", "Diamond", "House of Tangrams", "The Hook")
+gen_tangram$PuzzleName2 <- ifelse(gen_tangram$PuzzleName %in% puzzlename, gen_tangram$PuzzleName, "Others")
+gen_tangram$PuzzleName2 <- as.factor(gen_tangram$PuzzleName2)
+
+```
+
+
+
+
+
+
+### ANOVA 
+Besides t-test, we also want to show how people may misunderstand data. 
+```{r}
+test <- aov(TimeUsed_log ~ level_gender, data=gen_tangram)
+summary(test)
+ggplot(gen_tangram,aes(level_gender,TimeUsed_log)) +
+  geom_boxplot(varwidth = TRUE,fill = "white", colour = "#3366FF",
+               outlier.colour = "red", outlier.shape = 1) 
+```
+Through the p-value of this anova test, we can conclude that there are difference between different gender. However, can we conclude that that conclusion can apply to any puzzle we have. In another words, does the conclusion derived from a big dataset apply to small subsets? 
+
+When we take a look at the "A Nice Lighthouse"
+```{r}
+light <- filter(gen_tangram,PuzzleName2 == "A Nice Lighthouse")
+test.light <- aov(TimeUsed_log ~ level_gender, data=light)
+summary(test.light)
+ggplot(light,aes(level_gender,TimeUsed_log)) +
+  geom_boxplot(varwidth = TRUE,fill = "white", colour = "#3366FF",
+               outlier.colour = "red", outlier.shape = 1)
+```
+
+Similary, that can apply to Diamond. 
+```{r}
+diamond <- filter(gen_tangram,PuzzleName2 == "Diamond")
+test.diamond <- aov(TimeUsed_log ~ level_gender, data=diamond)
+summary(test.diamond)
+ggplot(diamond,aes(level_gender,TimeUsed_log)) +
+  geom_boxplot(varwidth = TRUE,fill = "white", colour = "#3366FF",
+               outlier.colour = "red", outlier.shape = 1)
+```
+
+And House of Tangram
+```{r}
+house <- filter(gen_tangram,PuzzleName2 == "House of Tangrams")
+test.house <- aov(TimeUsed_log ~ level_gender, data=house)
+summary(test.house)
+ggplot(diamond,aes(level_gender,TimeUsed_log)) +
+  geom_boxplot(varwidth = TRUE,fill = "white", colour = "#3366FF",
+               outlier.colour = "red", outlier.shape = 1)
+```

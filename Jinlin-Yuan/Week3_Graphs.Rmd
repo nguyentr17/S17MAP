@@ -1,0 +1,203 @@
+---
+title: "Graphical Comparison"
+author: "He Jinlin & Wang Yuan"
+date: "January 26, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(plyr)
+library(gridExtra)
+library(data.table)
+```
+## Todo:
+Change level name under "MatchingScheme"
+Tidy up variables
+* Data to start with:
+  All entries without time limit. 
+  
+* Response Variables
+    + timeUsedPerShape
+    + errorPerShape 
+
+* Factors of Interest
+    + TimerDisplay 
+    + MatchingScheme 
+
+### Cleaning the data
+
+1. Loading dataset from the website: 
+```{r}
+library(data.table)
+#shape <- read.csv("~/Desktop/MAP/Original.csv", stringsAsFactors = F)
+shape <- fread("http://kuiper.pearsoncmg.com/shapesplosion/webreporter.php?game=PerfectionFlash&groupID=&winlose=both&random=false&rows=&type=csv")
+```
+2. Using data with unlimited playtime yet playtime > 0:
+```{r}
+shape_untime <- shape[shape$requestedTime==0,]
+shape_untimed <- shape_untime[shape_untime$timeUsed!=0,]
+```
+3.For all the plots below, TimeUsed is computed in terms of seconds. It is also logged during plotting to highlight the difference in comparison. <br />
+```{r}
+shape_untimed$timeUsed = as.numeric(shape_untimed$timeUsed)
+shape_untimed$numShapes = as.numeric(shape_untimed$numShapes)
+
+shape_untimed_sec <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)
+
+```
+4.Creating a new column with time used per shape and error per shape:
+```{r}
+shape_untimed_sec <- mutate(shape_untimed_sec, timeUsedPerShape=(TimeUsedSec/numShapes))
+shape_untimed_sec <- mutate(shape_untimed_sec,errorPerShape=(as.numeric(numErrors)/as.numeric(numShapes)))
+```
+##Realizing there is a significant outlier that used more than 4000 seconds (67 minutes), we decided to remove the single outlier.  <br />
+```{r echo=TRUE}
+shape_untimed_truncate = shape_untimed_sec[shape_untimed_sec$TimeUsedSec<=4000,]
+```
+5.Converting the categorical variables such as numShapes in numerical forms into factors
+```{r}
+shape_untimed_sec$numShapes = as.factor(shape_untimed_sec$numShapes)
+shape_untimed_sec$timerDisplay = as.factor(shape_untimed_sec$timerDisplay)
+shape_untimed_sec$matchingScheme = as.factor(shape_untimed_sec$matchingScheme)
+shape_untimed_sec$timerDisplay = as.factor(shape_untimed_sec$timerDisplay)
+shape_untimed_sec$numErrors = as.numeric(shape_untimed_sec$numErrors)
+
+```
+3
+Now we subset a *Sample B* out of *Sample A* using the most popular Group IDs:
+**GroupIDs that contain "6002"
+**GroupIDs of MAT 209 class
+**The most GroupIDs: "HotchkissStudent16""
+```{r}
+##groupID_count <- count_(shape_untimed_sec,"groupID")
+group_6002<-shape_untimed_sec[like(groupID,"6002")]
+MAT_209<-shape_untimed_sec[like(tolower(groupID),"mat209")]
+shape_HotchkissStudent16<-shape_untimed_sec[shape_untimed_sec$groupID=="HotchkissStudent16",]
+
+##as.data.frame(table($groupID))
+##tb <- tb[order(-tb$Freq),]
+##tb <- tb[tb$Freq > 25,]
+```
+
+
+#########
+## Approach 1: Same Plots With Different Sample Size (*Sample A* and *Sample B*)
+### 'timeUsedPerShape' as Response Variable
+
+### 1: Log(timeUsedPerShape ~ MatchingScheme)
+```{r}
+plot1 = ggplot(data = shape_untimed_truncate, aes(x=matchingScheme, y=timeUsedPerShape)) + geom_boxplot()  +  scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_truncate)[1])) 
+
+plot2 = ggplot(data = group_6002, aes(x=matchingScheme, y=timeUsedPerShape)) + geom_boxplot()  + scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(group_6002)[1])) 
+grid.arrange(plot1, plot2, ncol=2)
+```
+Findings: *Sample B* has a much smaller sample size than *Sample A*, but have roughly similar results.
+
+Linear Regression:
+```{r}
+mod1 <- lm(timeUsedPerShape ~ matchingScheme, data = shape_untimed_truncate)
+mod2 <- lm(timeUsedPerShape ~ matchingScheme, data = group_6002)
+summary(mod1)
+summary(mod2)
+```
+
+### 2. Log(timeUsedPerShape ~ TimerDisplay)
+```{r}
+plot3 = ggplot(data = shape_untimed_truncate, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  +  scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_truncate)[1])) 
+
+plot4 = ggplot(data = group_6002, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  + scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(group_6002)[1])) 
+grid.arrange(plot3, plot4, ncol=2)
+```
+```{r}
+mod3 <- lm(timeUsedPerShape ~ timerDisplay, data = shape_untimed_truncate)
+mod4 <- lm(timeUsedPerShape ~ timerDisplay, data = group_6002)
+summary(mod3)
+summary(mod4)
+```
+Findings: Different sample size suggests different results while both p-value are significant. 
+
+### 3. Log(timeUsedPerShape) ~ TimerDisplay, colored by MatchingScheme 
+**Note: We are still working on the code to nicely juxatpose two graphs together without squeeshing either. Here the purple plots on the left corresponds to 'shape'.** <br />
+```{r}
+plot5=ggplot(data = shape_untimed_truncate, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_truncate)[1])) 
+
+plot6=ggplot(data = group_6002, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(group_6002)[1])) 
+grid.arrange(plot5,plot6,ncol=2)
+```
+
+### Linear Regression:
+```{r}
+
+mod5 <- lm(timeUsedPerShape ~ matchingScheme + timerDisplay, data = shape_untimed_truncate)
+mod6 <- lm(timeUsedPerShape ~ matchingScheme + timerDisplay, data = group_6002)
+
+summary(mod5)
+summary(mod6)
+```
+Findings: Firstly, we realize that in *Sample B*, the factor-level distribution is not thorough as there are no entries with 'matchingScheme' of diffColor and shape. Thus, if we ever going to ask questions like "how does timerDisplay affects timeUsedPerShape?" and we only collected *sample B*, we should realize that our results are biased since different matchingScheme does significantly affects the distribution of means in both factor levels (with and without timerDisplay).  
+
+
+### 4 Compare between two subsets
+Log(timeUsedPerShape) ~ timerDisplay, colored by matchingScheme
+**Note: still working on the code to nicely juxatpose two graphs together without squeeshing either. Here the purple plots on the left is 'shape'.**  <br />
+```{r graph5, echo=FALSE}
+plot9=ggplot(data = group_6002, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(group_6002)[1]))
+
+plot10=ggplot(data = shape_HotchkissStudent16, aes(x=timerDisplay, y=timeUsedPerShape)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title=paste("n=",dim(shape_HotchkissStudent16)[1]))
+grid.arrange(plot9,plot10,ncol=2)
+```
+Finding: Now for the smaller sample, we only have a single level for timerDisplay. Derived from previous finding that timerDisplay generally corresponds to longer timeUsedPerShape, the mean of the smaller sample is likely to be an overestimation of the population mean since it does not have any data without timerDisplay. Here is how small sample can easily be misleading to understand the entire picture.  
+
+
+## Approach 2: Plots of Same Dataset With Different Number of Variables
+
+### Using errorPerShape as response
+```{r}
+shape_untimed_sec$numShapes=as.numeric(shape_untimed_sec$numShapes)
+shape_untimed_sec = mutate(shape_untimed_sec, errorPerShape=shape_untimed_sec$numErrors / shape_untimed_sec$numShapes)
+```
+### 8.Effects of looking at one additional fixed variable ('TimerDisplay')
+### Sample untimed
+```{r graph8}
+library(gridExtra)
+plot7 <- ggplot(data = shape_untimed_sec, aes(x=matchingScheme, y=errorPerShape)) + geom_boxplot() + geom_point(position = "jitter")  + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_sec)[1]))+ylim(0,2)
+
+plot8 <- ggplot(data = shape_untimed_sec, aes(x=matchingScheme, y=errorPerShape)) +  geom_boxplot()  + aes(colour=timerDisplay) + theme(legend.position="top") + labs(title="") +ylim(0,2)
+
+grid.arrange(plot7, plot8, ncol=2)
+```
+
+### Linear Regression (untimed Sample)
+```{r}
+mod10 <- lm(errorPerShape ~ matchingScheme, data = shape_untimed_sec)
+mod20 <- lm(errorPerShape ~ timerDisplay, data = shape_untimed_sec)
+mod30 <- lm(errorPerShape ~ matchingScheme + timerDisplay, data = shape_untimed_sec)
+summary(mod10)
+summary(mod20)
+summary(mod30)
+```
+### Using '6002' Sample: 
+```{r}
+plot11 <- ggplot(data = group_6002, aes(x=matchingScheme, y=errorPerShape)) + geom_boxplot()  + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_sec)[1]))+ylim(0,1.5)
+
+plot12 <- ggplot(data = group_6002, aes(x=matchingScheme, y=errorPerShape)) +  geom_boxplot()  + aes(colour=timerDisplay) + theme(legend.position="top") + labs(title="") +ylim(0,1.5)
+
+grid.arrange(plot11, plot12, ncol=2)
+```
+### Linear Regression (6002)
+```{r}
+mod11 <- lm(errorPerShape ~ matchingScheme, data = group_6002)
+mod21 <- lm(errorPerShape ~ timerDisplay, data = group_6002)
+mod31 <- lm(errorPerShape ~ matchingScheme + timerDisplay, data = group_6002)
+summary(mod11)
+summary(mod21)
+summary(mod31)
+```
+
+## overlaying jitterplots with boxplots: (not looking great)
+```{r}
+ggplot(data = shape_untimed_sec, aes(x=matchingScheme, y=errorPerShape)) + geom_boxplot() + geom_jitter(size= 1, alpha=0.2) + theme(legend.position="top") + labs(title=paste("n=",dim(shape_untimed_sec)[1]))+ylim(0,2)
+##geom_point(position = "jitter")  + 
+```

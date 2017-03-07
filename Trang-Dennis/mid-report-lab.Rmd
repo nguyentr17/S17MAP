@@ -1,0 +1,246 @@
+---
+title: "Mid-term Report Lab"
+author: "Trang Nguyen, Dennis Liu"
+date: "2/23/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(mosaic)
+library(party)
+library(rpart)
+```
+
+## INTRODUCTION
+
+## 1. Data Scraping
+Instead of downloading the csv from the website and then importing the file into R, we can stream live data using its url and the library __RCurl__.    
+```{r}
+library(RCurl)
+url <- "http://statgames.tietronix.com/tangrams/webreporter.php?game=tangrams&groupID=&winlose=both&random=false&rows=&type=csv"
+tangram <- read.csv(textConnection(readLines(url)), stringsAsFactors = F)
+```
+
+
+## 2. Data Cleaning
+This is a messy dataset for a couple of reasons:  
++ __TimeUsed__: There are many extreme outliers like 0 or 10000 seconds. Some users did not not finish the game and forgot to close the browser. Another issue with this variable is that time used is bounded above in some studies. If the study chooses restriction time request (60, 120, or 180 seconds), its time used will converge to the time limit and bias the results.  
++ __Factors__: There are 3 self-input factors and Tangram set up them into 3 different columns. Therefore, we need to search through all 3 columns for a specific factor (i.e. Gender).  
+
+# Step 1: Remove extreme outliers
+```{r}
+tangram <- tangram[tangram$TimeUsed > 0 & tangram$TimeUsed < 3600,]
+
+```
+
+
+# Step 2: Use log transformation to reduce the variability of __TimeUsed__ variable  
+```{r}
+tangram$TimeUsed_log <- log(tangram$TimeUsed)
+```
+
+# Step 3: Consolidate 3 columns of factors and levels
+As mentioned above, it is difficult to run analysis when there are 3 separate columns of factors and levels. Therefore, we run an algorithm over all 3 columns to identify some common solid factors and use them for further analysis.    
+```{r}
+factorlist <- as.data.frame(table(c(tangram$Factor1,tangram$Factor2, tangram$Factor3)))
+factorlist <- factorlist[order(- factorlist$Freq),]
+head(factorlist, 20)
+```
+After going through the list of factors, we decided to extract 4 factors: Gender, Athlete, STEM, and Age, using the algorithm below. We only include the code for Gender in this report (the code for other factors can be found in the __factor_filter.R__ file) This algorithm can be broken down into 3 components:    
+
+```{r}
+### Factor to be filtered: GENDER
+### Step 1: Create a key set: A set of criteria for regular expressions/ key patterns
+gen = c("^gen","^sex")
+gen_male = c("^m","^h")
+gen_female = c("^f", "^mu")
+
+### Step 2: Create a variable to identify whether a study includes GENDER as a factor or not
+### Supporting functions
+### ismatch
+### @input: cond: a vector of key patterns (e.g. gen)
+###         x, y, z: 3 columns to look for key
+### @return: 0 if no match
+###          index of the factor (1, 2, 3() if there is match
+ismatch <- function(cond, x, y, z) {
+  x <- grep(paste(cond, collapse = "|"), c(x, y, z), ignore.case = T, value = FALSE)
+  return (ifelse(length(x), as.numeric(x), as.numeric(0)))
+}
+
+### Step 3: Create a variable for levels of genders if GENDER is a factor in that study
+### level_gen_fun
+### @input: x is the col index (given by factor_gender)
+###         y is the row index
+### @return: -1 if no gender factor indicated
+###          -2 if gender factor indicated but level_gen key patterns not matched (require future manual check)
+###           M/F
+### @note: this function is specific to gender only. Needs to think about how to generalize it. 
+level_gen_fun <- function(x, y) {
+  return (ifelse(x == 0, -1, 
+                 ifelse(grepl(paste(gen_female, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                        "F", 
+                        ifelse(grepl(paste(gen_male, collapse = "|"),tangram[y,2*x+3], ignore.case = T),
+                               "M",-2))))
+} 
+## cannot be used for data table
+tangram <- as.data.table(tangram)
+tangram[, factor_gender := ismatch(gen, Factor1, Factor2, Factor3), by = 1:nrow(tangram)]
+tangram <- as.data.frame(tangram)
+tangram$level_gender <- mapply(level_gen_fun, tangram$factor_gender, 1:nrow(tangram), SIMPLIFY = T)
+```
+
+This algorithm has both pros and cons. Two main pros are its low time complexity and its generalizability across different types of factors. One cons is the divergence in using data table and data frame. More particularly, __ismatch__ must be applied to datatable while __level_gen_fun__ must be applied to a dataframe.  
+
+## 3. Data Exploration
+# Approach 1: View the dataset as one study
+```{r}
+bwplot( TimeUsed_log ~ level_gender, data = tangram[tangram$level_gender == "F"|tangram$level_gender == "M",], main="") 
+```
+We are also interest in the gender difference within one game. In order to do that, we plot a double bar chart. With the y-axis as the average of Time_used and the X-axis as Puzzle Name. 
+```{r}
+gen_tangram <- tangram[tangram$level_gender == "F"|tangram$level_gender == "M",]
+statsgame <- c("Laughing Man", "Piano", "The Hook", "Complex Hexagon", "Diamond", "House of Tangrams",
+               "A Nice Lighthouse", "The Brain Buster", "A Simple Chair", "The Hat Wearer",
+               "The Acrobat", "The Bird", "Crouching Cat", "The Goat", "The Six", "The G",
+               "Andy's Puzzle", "Walking Person Puzzle", "A Medicine Jar", "Candle")
+gen_tangram_statsgame <- gen_tangram[gen_tangram$PuzzleName %in% statsgame,]
+gen_tangram_count <- count_(gen_tangram_statsgame,"PuzzleName")
+gen_tangram_count <- gen_tangram_count[order(-gen_tangram_count$n),]
+ggplot(gen_tangram_statsgame[gen_tangram_statsgame$PuzzleName %in% head(gen_tangram_count$PuzzleName,5),], aes(fill = level_gender, y = TimeUsed_log, x = PuzzleName)) +
+  geom_bar(position = "dodge", stat = "identity")
+```
+We noticed that there are some samples request a limited time. If they request a limited time, there is a possibility such that they will fail the game. From that, we have the plot as follows,
+```{r}
+gen_won_res_count <-  as.data.frame(table(gen_tangram[gen_tangram$RequestedTime != 0,]$level_gender,gen_tangram[gen_tangram$RequestedTime != 0,]$Won))
+ggplot(gen_won_res_count, aes(x=Var1, y=Freq,fill=Var2)) + geom_bar(stat="identity")
+```
+We are also interest in the gender difference within one game. In order to do that, we plot a double bar chart. With the y-axis as the average of Time_used and the X-axis as Puzzle Name. 
+```{r}
+gen_tangram_statsgame <- gen_tangram[gen_tangram$PuzzleName %in% statsgame,]
+gen_tangram_count <- count_(gen_tangram_statsgame,"PuzzleName")
+gen_tangram_count <- gen_tangram_count[order(-gen_tangram_count$n),]
+ggplot(gen_tangram_statsgame[gen_tangram_statsgame$PuzzleName %in% head(gen_tangram_count$PuzzleName,5),], aes(fill = level_gender, y = TimeUsed_log, x = PuzzleName)) +
+  geom_bar(position = "dodge", stat = "identity")
+```
+
+
+# (b) Look at multiple variables at the same time  
+In this section, we will use _CART analysis_ and _Random Forest_ to take all possible variables into consideration to predict Time Used. Here is the list of predicting variables:  
++ _Hints Enabled_: 0 or 1
++ _Hints Used_: continuous variable
++ _Number of Shapes_: continuous variable
++ _Gender_: F or M  
+# Divide the dataset into train and test data:
+```{r}
+library(dplyr)
+gender_tangram <- tangram[tangram$level_gender %in% c("F", "M"), ]
+# Used 75:25 split
+puzzlename <- c("A Nice Lighthouse", "Diamond", "House of Tangrams", "The Hook")
+gender_tangram$PuzzleName2 <- ifelse(gender_tangram$PuzzleName %in% puzzlename, gender_tangram$PuzzleName, "Others")
+gender_tangram$PuzzleName2 <- as.factor(gender_tangram$PuzzleName2)
+train_index <- sample(1:nrow(gender_tangram),size = 0.75*nrow(gender_tangram))
+gender_train <- gender_tangram[train_index, ]
+gender_test <- gender_tangram[-train_index,]
+```
+# Random Forest  
+```{r}
+library(randomForest)
+set.seed(123)
+gender_train$level_gender <- as.factor(gender_train$level_gender)
+rf <- randomForest::randomForest(TimeUsed_log ~ level_gender + HintsUsed + PuzzleName2, 
+                                 data = na.omit(gender_train),
+                                 importance = TRUE,
+                                 ntree = 2000)
+imp <- as.data.frame(sort(importance(rf)[,1],decreasing = TRUE),optional = T)
+names(imp) <- "% Inc MSE"
+print(rf)
+
+```
+
+```{r}
+
+```
+
+
+# Approach 2: View the dataset as a cumulation of different studies  
+This approach views the whole dataset as a collection of different samples. We tested this approach for the question: _"Does gender influence the time used?"_ ran through all samples and calculated p-value for each sample to see the distribution of p-value in the whole dataset. The variability of p-value in this distribution aims at demonstrating to statistics students how unreliable p-value can be sometimes. Some people argue that that increasing sample size is the only thing we need to in order to have a reliable p-value. However, in the scatterplot of sample size and p-value, we can see that there is not a clear correlation. There are other factors in design of experiments researchers need to pay attention to in order to guarantee the reliability of p-value.      
+```{r}
+tangram_tested <- as.data.table(tangram)
+tangram_tested$level_gender[tangram_tested$level_gender == -2] <- "Others"
+tangram_tested$GroupName <- tolower(tangram_tested$GroupName) ### ASSUMPTION: case-insenstive for group name
+# filtering out null names and groups with small sample size (< 5)
+tangram_tested <- tangram_tested[tangram_tested$GroupName != "",]
+
+
+# Only include 2 levels of gender: Female and Male
+tangram_pvalue <- tangram_tested[tangram_tested$level_gender %in% c("F", "M"),]
+tangram_pvalue[, `:=`( SampleSize = .N) , by = GroupName] 
+tangram_pvalue <- tangram_pvalue[tangram_pvalue$SampleSize >= 5,]
+tangram_pvalue[, `:=`(log_timeused_mean = mean(TimeUsed_log), timeused_mean = mean(TimeUsed)), by = c("GroupName", "level_gender")]
+tangram_pvalue[, `:=`(n = .N, sd = sd(TimeUsed_log)), by = c("GroupName", "level_gender")]
+
+ttestFun <- function(dat) {
+  if (sum(dat$level_gender == "F") > 1 && sum(dat$level_gender == "M") > 1) {
+    the_fit <- t.test(TimeUsed_log ~ level_gender, data = dat)
+    #setNames(the_fit$p.value, "p.value")}
+    c("p.value" = the_fit$p.value, "samplesize" = mean(dat$SampleSize))}
+  else {
+    c("p.value" = -1, "samplesize" = mean(dat$SampleSize))
+  }
+}
+# 1. Scatterplot of pvalue vs. sample size
+
+alpha <- 0.1
+gender_pval_dist <- ddply(tangram_pvalue, ~ GroupName, ttestFun)
+gender_pval_dist$significant <-(gender_pval_dist$p.value < alpha)*1
+gender_pval_dist$significant <- as.factor(gender_pval_dist$significant)
+ggplot(gender_pval_dist[gender_pval_dist$p.value != -1,], aes(x = samplesize, y = p.value)) + 
+  geom_point(aes(colour = significant)) +
+  scale_color_manual(values=c("black", "red")) +
+  geom_hline(aes(yintercept = alpha), color = "red") +
+  geom_text(aes(100,0.1,label = "Significant level = 0.1", vjust = -1), color = "red") +
+  scale_x_continuous(name="Sample Size", limits=c(0, 125)) +
+  scale_y_continuous(name="t-test p-value", limits=c(0, 1), breaks = seq(0,1, by = 0.1)) 
+
+# 2. Histogram of p-value 
+ggplot(gender_pval_dist[gender_pval_dist$p.value != -1,], aes(p.value)) +
+  geom_histogram(binwidth = 0.01, position = "identity", alpha = 0.5, colour = "black", fill = "white")
+  
+
+# 3. Overlaid histogram for means (Female vs Male)
+gender_samplingdis <- tangram_tested[tangram_tested$level_gender != -1,]
+gender_samplingdis[,`:=`(SampleSize = .N), by = GroupName]
+gender_samplingdis[, `:=`(log_timeused_mean = mean(TimeUsed_log), timeused_mean = mean(TimeUsed)), by = c("GroupName", "level_gender")]
+gender_samplingdis[, `:=`(n = .N, sd = sd(TimeUsed_log)), by = c("GroupName", "level_gender")]
+gender_samplingdis <- gender_samplingdis[,c("GroupName", "level_gender", "SampleSize", "timeused_mean", "log_timeused_mean","n","sd"), with = FALSE]
+gender_samplingdis <- gender_samplingdis[!duplicated(gender_samplingdis),]
+
+### Aggregate data for vertical lines
+gender_samplingdis_vline <- gender_samplingdis %>%
+  group_by(level_gender) %>%
+  summarise(log_timeused_mean = mean(log_timeused_mean), timeused_mean = mean(timeused_mean))
+
+ggplot(gender_samplingdis, aes(timeused_mean, fill = level_gender)) + 
+  geom_density(alpha = 0.3) +
+  geom_vline(data=gender_samplingdis_vline, aes(xintercept=timeused_mean,  colour=level_gender),
+               linetype="dashed", size=1) +
+  labs(title = "Distribution of Sample Means of Different Gender Levels") +
+  labs(x = "Sample Mean", y = "Density") +
+  ylim(0.00, 0.025) +
+  scale_x_continuous(minor_breaks = seq(0, 200, by = 25))
+
+ggplot(gender_samplingdis, aes(log_timeused_mean, fill = level_gender)) + 
+  geom_density(alpha = 0.3) +
+  geom_vline(data=gender_samplingdis_vline, aes(xintercept=log_timeused_mean,  colour=level_gender),
+               linetype="dashed", size=1) +
+  labs(title = "Distribution of Sample Means of Different Gender Levels") +
+  labs(x = "Sample Mean (log)", y = "Density") +
+  ylim(0.00, 1.00)
+```
+
+

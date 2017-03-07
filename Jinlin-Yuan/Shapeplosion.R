@@ -1,17 +1,133 @@
-
-### Initial analysis
-
-shape <- read.csv("C:/Users/hejinlin/Desktop/Original.csv",
-                  stringsAsFactors = F)
-
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(mosaic)
+### Getting data without time limit (Sample A)
+library(data.table)
+shape <- fread("http://kuiper.pearsoncmg.com/shapesplosion/webreporter.php?game=PerfectionFlash&groupID=&winlose=both&random=false&rows=&type=csv")
 shape_untime = shape[shape$requestedTime==0,]
 shape_untimed = shape_untime[shape_untime$timeUsed!=0,]
-name = names(shape_untimed)
-selected = shape_untimed[,c("numShapes","numErrors")]
-a = selected[,c("numShapes")]
 
-tapply(shape_untimed$logTimeUsed, shape_untimed$shapesMatched)
-#### 
+shape_untimed$numShapes = as.factor(shape_untimed$numShapes)
+shape_untimed$matchingScheme = as.factor(shape_untimed$matchingScheme)
+shape_untimed$requestedTime = as.factor(shape_untimed$requestedTime)
+shape_untimed$timeUsed = as.numeric(shape_untimed$timeUsed)
+shape_untimed$timerDisplay = as.factor(shape_untimed$timerDisplay)
+shape_untimed$numErrors = as.numeric(shape_untimed$numErrors)
+
+shape_untimed <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)
+
+### Further cleaning of v1label = gender
+gender <- filter(shape_untimed, tolower(strtrim(shape_untimed$v1label,3))=="gen" |
+                   tolower(strtrim(shape_untimed$v1label,3))=="sex" |
+                   tolower(strtrim(shape_untimed$v1label,4))=="male" |
+                   tolower(strtrim(shape_untimed$v1label,1))=="f")
+#delete specific rows
+case <- (tolower(strtrim(gender$v1value,1)) == "m") & 
+  (tolower(strtrim(gender$v2value,1)) =="f")
+gender1 <- gender[(strtrim(gender$v1value,1) != "1") &
+                    (gender$v1value != "2") &
+                    (gender$v1label != "Gender\rOrder") &
+                    (gender$v1label != "female\rorder") &
+                    (gender$v1value != "0") &
+                    (tolower(gender$v1value) != "morf") &
+                    (gender$studentID != "mb") &
+                    (gender$studentID != "31207") &
+                    (gender$v1value != "cat") &
+                    (gender$studentID != "3659") &
+                    (tolower(gender$v1value) != "attempt") &
+                    (!case),]
+
+
+cond <- tolower(strtrim(shape_untimed$v1value,1))=="m" &
+  tolower(strtrim(shape_untimed$v2value,1))=="f"
+
+yuan_gender <- filter(shape_untimed, (tolower(strtrim(shape_untimed$v1label,3))=="gen" |
+                                        tolower(strtrim(shape_untimed$v1label,3))=="sex" | 
+                                        tolower(strtrim(shape_untimed$v1label,4))=="male" | 
+                                        tolower(strtrim(shape_untimed$v1label,1))=="f" ) &
+                        
+                        strtrim(shape_untimed$v1value,1) != 2 & 
+                        strtrim(shape_untimed$v1value,1) != 1 &
+                        strtrim(shape_untimed$v1value,1) != 0 &
+                        
+                        shape_untimed$v1value != "MorF" &
+                        shape_untimed$v1value != "cat" &
+                        shape_untimed$v1value != "Yes" &
+                        shape_untimed$v1value != "Attempt" & !cond)
+
+#identify all entries with v1value starts with "M"/"F"
+#create a new column indicating 1/0 Male/Female
+
+gender1 <- mutate(gender1, 
+                  gender = as.factor(ifelse(
+                    pmax((tolower(strtrim(gender1$v1label,1)) == "m"), (tolower(strtrim(gender1$v1value,1)) =="m")), 
+                    1, 
+                    ifelse(pmax(tolower(strtrim(gender1$v1label,1)) == "f",
+                                (tolower(strtrim(gender1$v1value,1)) =="f")), 
+                           0, 
+                           NA))))
+
+gender2 <- na.omit(gender1)
+
+#identifying most played groups:
+tb <- as.data.frame(table(gender2$groupID))
+#tb <- tb[order(-tb$Freq),]
+#tb <- tb[tb$Freq > 25,]
+
+#Select groups that are under size 50
+tb2 <- filter(tb, tb$Freq >= 5 & tb$Freq <= 50)
+
+#Create a vector of groupID's whose size is between 25 and 50
+selected_groupID <- as.character(tb2$Var1)
+
+
+#Hypothesis testing function
+par(mar=c(1,1,1,1))
+par(mfrow = c(3,6))
+groupName <- c()
+pvalues <- c()
+for (i in 1:length(selected_groupID)) {
+  female <- gender2[gender2$groupID == selected_groupID[i] & gender2$gender == 0,]$TimeUsedSec
+  male <- gender2[gender2$groupID == selected_groupID[i] & gender2$gender == 1,]$TimeUsedSec
+  if (length(female) > 1 & length(male) > 1) {
+    groupName <- cbind(groupName, selected_groupID[i])
+    p <- round(t.test(female, male)$p.value, digits = 3)
+    pvalues <- cbind(pvalues, p)
+    
+    data1 <- gender2[gender2$groupID == selected_groupID[i],]
+    boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n =", dim(data1)[1], ", p-value = ", p),
+            xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+  }
+}
+
+
+#Result of tb$Var1
+
+#[1] HJ375F14  MSP2013   MAT336    HJ190F14  stats2    MAED550   MAT336S14 336S14    mth22601  MATH22015 MAT336S15
+#[12] MATH22018 USCOTS15  mth32602  mth22602  mth32601 
+
+
+#comparing two most played groups (104 vs 79)
+HJ375F14 =gender2[gender2$groupID=="HJ375F14",]
+MSP2013=gender2[gender2$groupID=="MSP2013",]
+
+# Added sample size (# of observations to the graph)
+ggplot(data = HJ375F14, aes(x=matchingScheme, y=timeUsed)) + geom_boxplot()  + 
+  aes(colour=gender) + theme(legend.position="none") + labs(title= paste("n =", dim(HJ375F14)[1])) 
+ggplot(data = MSP2013, aes(x=matchingScheme, y=timeUsed)) + geom_boxplot()  +
+  aes(colour=gender) + theme(legend.position="none") + labs(title= paste("n =", dim(MSP2013)[1])) 
+
+model_gp_1_1 = lm(timeUsed~gender, data = HJ375F14)
+model_gp_1_2 = lm(timeUsed~gender + matchingScheme, data = HJ375F14)
+model_gp_2_1 = lm(timeUsed~gender, data = MSP2013)
+model_gp_2_2 = lm(timeUsed~gender + matchingScheme, data = MSP2013)
+
+### Potential filters
+selected = shape_untimed[,c("numShapes","numErrors")]
+mplot(HJ375F14)
+
+#### raw info about data
 table(shape$numShapes) #fine
 15    18    21    24 
 5368  1992  6792 24196 
@@ -49,6 +165,7 @@ table(shape$timeUsed)#Need to eliminate the
 shape_untimed = shape_untime[shape_untime$timeUsed!=0,]
 
 freq2 = count_(shape,"v2label")
+
 ####Single-factor Plot
 # Response 1: errors
 boxplot(shape_untimed$numErrors~shape_untimed$proximityValue)
@@ -72,10 +189,14 @@ v1_music <- shape[tolower(strtrim(shape$v1label,2))=="mu" |
 
 "gender" "gender order" "sex" "male" "female" "male athlete" 
 "f gender" "gender female" 
-v1_gender <- shape[tolower(strtrim(shape$v1label,3))=="gen" |
-                     tolower(strtrim(shape$v1label,3))=="sex" |
-                     tolower(strtrim(shape$v1label,4))=="male" |
-                     tolower(strtrim(shape$v1label,1))=="f",]
+v1_gender = shape_untimed[tolower(strtrim(shape_untimed$v1label,3))=="gen" |
+                            tolower(strtrim(shape_untimed$v1label,3))=="sex" |
+                            tolower(strtrim(shape_untimed$v1label,4))=="male" |
+                            tolower(strtrim(shape_untimed$v1label,1))=="f",]
+gender <- filter(shape_untimed, tolower(strtrim(shape_untimed$v1label,3))=="gen" |
+                   tolower(strtrim(shape_untimed$v1label,3))=="sex" |
+                   tolower(strtrim(shape_untimed$v1label,4))=="male" |
+                   tolower(strtrim(shape_untimed$v1label,1))=="f")
 "dominant" "DOM" "DOMHAND" "DomHand" "hand" "DOMINANT" "Hand" "Dominant"
 "HAND" "Step dominant" "non dominant" "non-dominant hand"
 "NONDOMINANT" "Nondominant" "domhand" "dominant hand" "dominhand" 
@@ -97,13 +218,15 @@ shape_untimed_sec <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1
 shape_untimed_sec$numShapes = as.factor(shape_untimed_sec$numShapes)
 shape_untimed_sec$timerDisplay = as.factor(shape_untimed_sec$timerDisplay)
 shape_untimed_sec$matchingScheme = as.factor(shape_untimed_sec$matchingScheme)
-shape_untimed_truncate = shape_untimed_sec[shape_untimed_sec$TimeUsedSec<=1000,]
+shape_untimed_truncate <- shape_untimed[shape_untimed$TimeUsedSec<=1000,]
 
 music_untimed <- shape_untimed_sec[tolower(strtrim(shape_untimed_sec$v1label,2))=="mu" |
                                      tolower(strtrim(shape_untimed_sec$v1label,2))=="so",]
 
 #1 Log(Timeused:truncated) ~ numShapes, colored by MatchingScheme
-plot1 = ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot1 < ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=TimeUsedSec)) + 
+  geom_boxplot(size = 1)  + geom_jitter(size = 0.5, alpha = 0.3) + aes(colour=matchingScheme) + 
+  scale_y_log10() + theme(legend.position="top") + labs(title="") 
 plot2 = ggplot(data = music_untimed, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
 
 #2 Log(Timeused) ~ numShapes, colored by Timer
@@ -131,6 +254,11 @@ plot12= ggplot(data = music_untimed, aes(x=timerDisplay, y=TimeUsedSec)) + geom_
 plot13=ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=timeUsed)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
 plot14=ggplot(data = music_untimed, aes(x=numShapes, y=timeUsed)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
 grid.arrange(plot13,plot14,ncol=2)
+
+ggplot(data = shape_untimed, aes(x=numShapes, y=numErrors)) + geom_boxplot()  + aes(colour=matchingScheme) +  facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
+
+mean(shape_untimed_sec$TimeUsedSec)
+mean(music_untimed$TimeUsedSec)
 ## Question
 1.get rid of the entries? 
 MUSIC on & off 

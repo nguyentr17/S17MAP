@@ -1,0 +1,57 @@
+---
+title: "Shapesplosion_variables"
+author: "Yuan Wang"
+date: "2/9/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+##Database variables in Shapesplosion!
+
+While some of the names used in the database are self-explanatory, others can be more difficult to understand. This page aims to provide a summary.
+
+####id
+    Unique ID for the game played. Generated in sequential order. Probably useful only if you need to sort by time in an application that doesn't understand the timestamp.
+groupID
+    The group ID, as entered by the participant or submitted through the preset settings page.
+    
+####studentID
+    The participant ID, as entered by the participant.
+    
+####vNlabel
+    The label on the Nth custom field, as entered by the partipant or submitted through the preset settings page.
+    
+####vNvalue
+    The value of the Nth custom field, as entered by the participant.
+    
+####numShapes
+    The number of shapes in this game, as chosen by the participant or in the preset settings page. Can be between 1 and 24, but our settings restrict it to 15, 18, 21 and 24.
+    
+####matchingScheme
+    Type of matching rules used. Can take values of "shape", "both", "optionColor", and "diffColor". "shape" means that all of the colors are the same, "both" means that every piece has a different color than every other piece (but the same color as the piece's corresponding hole), "diffColor" means that all the pieces have different colors (and may or may not have the same color as their corresponding hole) and "optionColor" means that all the pieces are the same shape, but different color.
+    
+####requestedTime
+    How much time the user requested. Can be any positive number as well as 0. If 0, this means that the user requested infinite time.
+
+####timeUsed
+    The time, in milliseconds (1/1000 second) from when the participant presses the "start game" button to when he/she either runs out of time or wins the game.
+
+####timerDisplay
+    A number indicating whether or not the timer was displayed, with 0 meaning hidden and 1 meaning shown.
+
+####numErrors
+    Used to indicate how many errors the participant makes, with an error being letting a piece go without it being close enough to it's corresponding hole.
+
+####shapesMatched
+    How many pieces the participant was able to match to their corresponding holes. 
+
+####proximityValue
+    How close a piece has to be to its corresponding hole to be considered a match.
+
+####timestamp
+    The date and time of the end of this game. This will be in the server's time zone, which is CST.
+

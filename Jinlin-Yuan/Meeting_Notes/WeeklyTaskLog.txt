@@ -1,0 +1,65 @@
+Weekly Task Log
+
+Week5 (Feb 14 2017)
+____
+Adding on to the Lab:
+*Single t-test 
+e.g. “this group gets this result/plot”
+
+*Facet by ___ in all graphs 
+
+Week4 (Feb 9 2017)
+
+
+
+Week2(Jan 31 2017)
+
+———— //Check
+Compare same variable ID but different group ID to see how different small groups can get different mean/p-value/linear models
+	*use 'startWith' to extract group ID
+	(e.g. #see if there is a significant difference between gender in all groups with n <= 50 or so. so is there a difference in gender or not)
+
+———— 
+Update filter no. 5 from Dennis-Trang code
+
+———— //Check
+indicate sample size on graph
+
+———— //Check but look really ugly
+overlaying jitter plot and boxplot (transparency)
+
+———— //Check, See Gender_Test.RMD
+highlight/present examples that might be misleading
+
+————
+use 'time per shape'
+
+Create a .rmd file
+In the file, use Untimed data-frame
+Create graphs //Check
+	y-variable: TimePerShape, NumErrorPerShape
+	x-variable: matchingScheme
+	
+	y-variable: TimePerShape, NumErrorPerShape
+	x-variable: matchingScheme
+	color-by  : timerDisplay
+For each graph, create linear regression//Check
+Record coefficients and R^2
+
+Repeat the procedure with filtered data
+Filter data by group ID
+	most represented groupID
+	Grinnell groupID: MAT209, MAT336
+
+
+————
+slider bar for range to include/exclude outlier
+
+————
+slider bar to customize sample size
+
+————
+Change factor-level names: matchingscheme
+
+————
+Linear regression numShapes vs. timeUsed, and then see what happens if we break down by matchingScheme. Add p-value and see how p-value changes when sample-size/ w/wo matching / ... change

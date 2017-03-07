@@ -1,0 +1,209 @@
+---
+title: "Graphical Comparison"
+author: "He Jinlin & Wang Yuan"
+date: "January 26, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(plyr)
+library(gridExtra)
+```
+
+## Data Used
+*Sample A:* All entries with unlimited play time  <br />
+*Sample B:* Entries with one additional variable that involves music  (a subset of *Sample A*) <br />
+*Sample C:* Entries identified by the same group ID (a subset of *Sample A*)
+
+* Response Variables
+    + TimeUsed 
+    + NumErrors 
+
+* Factors of Interest
+    + NumShapes 
+    + TimerDisplay 
+    + MatchingScheme 
+
+### Cleaning the data
+
+1. Loading dataset from the website: 
+```{r}
+library(data.table)
+#shape <- read.csv("~/Desktop/MAP/Original.csv", stringsAsFactors = F)
+shape <- fread("http://kuiper.pearsoncmg.com/shapesplosion/webreporter.php?game=PerfectionFlash&groupID=&winlose=both&random=false&rows=&type=csv")
+```
+2. Using data with unlimited playtime yet playtime > 0:
+```{r}
+shape_untime = shape[shape$requestedTime==0,]
+shape_untimed = shape_untime[shape_untime$timeUsed!=0,]
+```
+3. For all the plots below, TimeUsed is computed in terms of seconds. It is also logged during plotting to highlight the difference in comparison. <br />
+```{r echo=FALSE}
+shape_untimed$numShapes = as.factor(shape_untimed$numShapes)
+shape_untimed$matchingScheme = as.factor(shape_untimed$matchingScheme)
+shape_untimed$requestedTime = as.factor(shape_untimed$requestedTime)
+shape_untimed$timeUsed = as.numeric(shape_untimed$timeUsed)
+shape_untimed$timerDisplay = as.factor(shape_untimed$timerDisplay)
+shape_untimed$numErrors = as.numeric(shape_untimed$numErrors)
+
+```
+
+```{r}
+shape_untimed_sec <-mutate(shape_untimed, TimeUsedSec = shape_untimed$timeUsed/1000)
+```
+
+4. Converting the categorical variables such as numShapes in numerical forms into factors
+```{r}
+shape_untimed_sec$numShapes = as.factor(shape_untimed_sec$numShapes)
+shape_untimed_sec$timerDisplay = as.factor(shape_untimed_sec$timerDisplay)
+shape_untimed_sec$matchingScheme = as.factor(shape_untimed_sec$matchingScheme)
+```
+5. Sample B was extracted from Sample A by identiying entries with any of the following 'v1lable' names : <br />
+"Music" "music" "song" "Song" "MUSICON MUSIC"
+```{r}
+music_untimed <- shape_untimed_sec[tolower(strtrim(shape_untimed_sec$v1label,2))=="mu" |                              tolower(strtrim(shape_untimed_sec$v1label,2))=="so",]
+```
+## Approach 1: Same Plots With Different Sample Size (*Sample A* and *Sample B*)
+### 'TimeUsed' as Response Variable
+Entries with TimeUsed more than 1000 seconds (17 minutes) is removed. It is because there is only one extreme entries with 406.4409 seconds (68 minutes)of time. <br />
+```{r}
+shape_untimed_truncate = shape_untimed_sec[shape_untimed_sec$TimeUsedSec<=1000,]
+```
+Then y-axis (TimeUsed) is logged  <br />
+
+### 1. Log(Timeused) ~ numShapes, colored by TimerDisplay
+```{r graph2, echo= FALSE}
+plot3 = ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=timerDisplay) + scale_y_log10() + theme(legend.position="top") + labs(title="")
+plot4 = ggplot(data = music_untimed, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=timerDisplay) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+grid.arrange(plot3, plot4, ncol=2)
+```
+ <br />
+ Findings: *Sample B* not only has a much smaller sample size than *Sample A*, but also have significantly uneven distribution across levels in a given factor. For example, for 18 and 21 shapes in *Sample B*, all the data have timer display. From *Sample A*, we see the general trend of having timer display increases the time used to complete the game. Therefore, if we had even distribution of entries with and without timer display in 18 and 21 shapes *Sample B*, we would likely to have obtained a higher mean of completion time. <br />
+**Plot 1 through 6 convey similar ideas**  <br />
+
+### 2: Log(Timeused) ~ numShapes, colored by MatchingScheme
+**Note: We are still working on the code to nicely juxatpose two graphs together without squeeshing either. Here the purple plots on the left corresponds to 'shape'.** <br />
+```{r graph, echo = FALSE}
+## Plot 1: Log(Timeused) ~ numShapes, colored by MatchingScheme
+plot1 = ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="")
+plot2 = ggplot(data = music_untimed, aes(x=numShapes, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="")
+grid.arrange(plot1, plot2, ncol=2)
+```
+
+
+### 3 Log(timeused) ~ matching scheme, colored by Timer
+```{r graph3, echo=FALSE}
+#3 Log(timeused) ~ matching scheme, colored by Timer
+plot5=ggplot(data = shape_untimed_truncate, aes(x=matchingScheme, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=timerDisplay) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot6=ggplot(data = music_untimed, aes(x=matchingScheme, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=timerDisplay) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+grid.arrange(plot5,plot6,ncol=2)
+```
+
+### 4 Log(timeused) ~ matching scheme, colored by numShapes
+```{r graph4, echo=FALSE}
+plot7=ggplot(data = shape_untimed_truncate, aes(x=matchingScheme, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=numShapes) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot8=ggplot(data = music_untimed, aes(x=matchingScheme, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=numShapes) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+grid.arrange(plot7,plot8,ncol=2)
+```
+
+### 5 Log(timeused) ~ timerDisplay, colored by matchingScheme
+**Note: still working on the code to nicely juxatpose two graphs together without squeeshing either. Here the purple plots on the left is 'shape'.**  <br />
+```{r graph5, echo=FALSE}
+plot9=ggplot(data = shape_untimed_truncate, aes(x=timerDisplay, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot10=ggplot(data = music_untimed, aes(x=timerDisplay, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+grid.arrange(plot9,plot10,ncol=2)
+```
+
+### 6 Log(timeused) ~ timerDisplay, colored by numShapes
+```{r graph6, echo = FALSE}
+plot11= ggplot(data = shape_untimed_truncate, aes(x=timerDisplay, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=numShapes) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+plot12= ggplot(data = music_untimed, aes(x=timerDisplay, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=numShapes) + scale_y_log10() + theme(legend.position="top") + labs(title="") 
+grid.arrange(plot11,plot12,ncol=2)
+```
+
+### 7 Log(timeused) ~ numShapes, colored by matchingScheme, facet by timerDisplay
+**Note: This is a three-way plots. It gives more comprehensive information all at once, but we find it difficult to provide readers with a focused sets of information.**
+**We are still working on the code to nicely juxatpose two graphs together without squeeshing either. Here the purple plots on the left is 'shape'.**
+``` {r graph1, echo=FALSE}
+plot13=ggplot(data = shape_untimed_truncate, aes(x=numShapes, y=timeUsed)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
+plot14=ggplot(data = music_untimed, aes(x=numShapes, y=timeUsed)) + geom_boxplot()  + aes(colour=matchingScheme) + scale_y_log10() + facet_wrap(~timerDisplay, ncol=4) + theme(legend.position="top") + labs(title="") 
+grid.arrange(plot13,plot14,ncol=2)
+```
+
+____________________
+
+
+## Approach 2: Plots of Same Dataset With Different Number of Variables
+### NumError as Response Variable
+**Filter data by groupID (top 5 most used group IDs)**
+``` {r grouping}
+#groupID_count <- count_(shape,"groupID")
+shape_HotchkissStudent16 <- shape_untimed[shape_untimed$groupID=="HotchkissStudent16",]
+shape_6002T6 <- shape_untimed[shape_untimed$groupID=="6002T6",]
+shape_6002T2 <- shape_untimed[shape_untimed$groupID=="6002T2",]
+shape_6002T3 <- shape_untimed[shape_untimed$groupID=="6002T3",]
+shape_6002T4 <- shape_untimed[shape_untimed$groupID=="6002T4",]
+```
+
+### 8.Effects of looking at one additional fixed variable ('TimerDisplay')
+### *Sample A*
+```{r graph7, echo=FALSE}
+library(gridExtra)
+plot1 <- ggplot(data = shape_untimed, aes(x=matchingScheme, y=numErrors)) +
+                    geom_boxplot()  + theme(legend.position="top") + labs(title="")
+plot2 <- ggplot(data = shape_untimed, aes(x=matchingScheme, y=numErrors)) + 
+                    geom_boxplot()  + aes(colour=numShapes) + facet_wrap(~timerDisplay, ncol=4) +
+                    theme(legend.position="top") + labs(title="") 
+grid.arrange(plot1, plot2, ncol=2)
+```
+
+### 9. *Sample C*           
+```{r graph8, echo=FALSE}
+plot3 <- ggplot(data = shape_HotchkissStudent16, aes(x=matchingScheme, y=numErrors)) +
+  geom_boxplot()  + theme(legend.position="top") + labs(title="")
+
+plot4 <- ggplot(data = shape_HotchkissStudent16, aes(x=matchingScheme, y=numErrors)) + 
+  geom_boxplot()  + aes(colour=numShapes) + facet_wrap(~timerDisplay, ncol=4) +
+  theme(legend.position="top") + labs(title="") 
+grid.arrange(plot3, plot4, ncol=2)
+```
+<br />
+Though 'colored by' here does not add any new information, but we still decide to include the third variable 'numShapes' because it still tells us that the all entries in this group used 21 shapes.
+
+### 10. Effects of looking at two additional fixed variable (TimerDisplay, NumShapes)
+```{r graph9, echo=FALSE}
+plot5 <- ggplot(data = shape_6002T2, aes(x=matchingScheme, y=numErrors)) +geom_boxplot()  + theme(legend.position="top") + labs(title="")
+
+plot6 <- ggplot(data = shape_6002T2, aes(x=matchingScheme, y=numErrors)) + geom_boxplot()  + aes(colour=timerDisplay) + facet_wrap(~numShapes, ncol=4) +
+  theme(legend.position="top") + labs(title="") 
+grid.arrange(plot5, plot6, ncol=2)
+```
+
+### 11.                                                     
+```{r graph10, echo = FALSE}
+plot7 <- ggplot(data = shape_6002T3, aes(x=matchingScheme, y=numErrors)) + geom_boxplot()  + theme(legend.position="top") + labs(title="")
+
+plot8 <- ggplot(data = shape_6002T3, aes(x=matchingScheme, y=numErrors)) +  geom_boxplot()  + aes(colour=timerDisplay) + facet_wrap(~numShapes, ncol=4) + theme(legend.position="top") + labs(title="") 
+grid.arrange(plot7, plot8, ncol=2)
+```
+
+### 12.                             
+```{r graph11, echo=FALSE}
+plot9 <- ggplot(data = shape_6002T4, aes(x=matchingScheme, y=numErrors)) + geom_boxplot()  + theme(legend.position="top") + labs(title="")
+
+plot10 <- ggplot(data = shape_6002T4, aes(x=matchingScheme, y=numErrors)) +  geom_boxplot()  + aes(colour=timerDisplay) + facet_wrap(~numShapes, ncol=4) +
+  theme(legend.position="top") + labs(title="") 
+grid.arrange(plot9, plot10, ncol=2)
+```
+
+### 13.                        
+```{r graph12, echo=FALSE}
+plot11 <- ggplot(data = shape_6002T6, aes(x=matchingScheme, y=numErrors)) +
+  geom_boxplot()  + theme(legend.position="top") + labs(title="")
+plot12 <- ggplot(data = shape_6002T6, aes(x=matchingScheme, y=numErrors)) + 
+  geom_boxplot()  + aes(colour=timerDisplay) + facet_wrap(~numShapes, ncol=4) +
+  theme(legend.position="top") + labs(title="") 
+grid.arrange(plot11, plot12, ncol=2)
+```

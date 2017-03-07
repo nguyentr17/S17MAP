@@ -265,7 +265,7 @@ ggplot(diamond,aes(level_gender,TimeUsed_log)) +
                outlier.colour = "red", outlier.shape = 1)
 ```
 
-###Extra
+### Classification Tree
 How can we find those groups with different outcomes. __classification tree__ is a good tool to visualize those groups. A decision tree to help you to find out different outcomes from different groups at once. For example, if we want to see whether there is a difference between hints-enabled and hints-disabled. We use __ctree__ from __party__ package. 
 
 ```{r}
@@ -279,3 +279,36 @@ plot(fit)
 Consider a code to draw a graph similar to the graph below. 
 
 ![Sample Tree](tree.png)
+
+### Random Forest  
+Random Forest is a machine learning technique that can be used to detect the importance of each variable in the model. 
+Here is the list of predicting variables:  
++ _Hints Enabled_: 0 or 1  
++ _Hints Used_: continuous variable  
++ _Number of Shapes_: continuous variable  
++ _Gender_: F or M  
+#### Step 1. Divide the dataset into train and test data:  
+```{r}
+
+# Used 75:25 split
+puzzlename <- c("A Nice Lighthouse", "Diamond", "House of Tangrams", "The Hook")
+gen_tangram$PuzzleName2 <- ifelse(gen_tangram$PuzzleName %in% puzzlename, gen_tangram$PuzzleName, "Others")
+gen_tangram$PuzzleName2 <- as.factor(gen_tangram$PuzzleName2)
+train_index <- sample(1:nrow(gen_tangram),size = 0.75*nrow(gen_tangram))
+gen_train <- gen_tangram[train_index, ]
+gen_test <- gen_tangram[-train_index,]
+```
+#### Step 2. Train the Random Forest model   
+```{r}
+library(randomForest)
+set.seed(123)
+gen_train$level_gender <- as.factor(gen_train$level_gender)
+rf <- randomForest::randomForest(TimeUsed_log ~ level_gender + HintsUsed + PuzzleName2, 
+                                 data = na.omit(gen_train),
+                                 importance = TRUE,
+                                 ntree = 2000)
+imp <- as.data.frame(sort(importance(rf)[,1],decreasing = TRUE),optional = T)
+names(imp) <- "% Inc MSE"
+print(rf)
+
+```

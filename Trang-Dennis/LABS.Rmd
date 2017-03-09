@@ -28,9 +28,8 @@ library(party)
 ## 1. Getting Data
 First, we want to import real time data from website. In order to make this dataset more dynamic for future use, we use the library __RCurl__ to import the most updated dataset into R instead of downloading the csv from the website.  
 ```{r, message=FALSE, warning=FALSE}
-library(RCurl)
-url <- "http://statgames.tietronix.com/tangrams/webreporter.php?game=tangrams&groupID=&winlose=both&random=false&rows=&type=csv"
-tangram_data <- read.csv(textConnection(readLines(url)), stringsAsFactors = F)
+
+tangram_data <- read.csv("tangrams_data.csv", stringsAsFactors = F)
 ```
 
 ## 2. Cleaning and Re-formating Data

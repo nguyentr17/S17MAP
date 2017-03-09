@@ -1,9 +1,10 @@
 ---
-title: "LAB1"
+title: "How is T-Test Unreliable?"
 author: "Dennis Liu & Trang Nguyen"
 date: "3/6/2017"
 output: html_document
 ---
+
 ## Objective  
 This lab aims at demonstrating some bad practices of experiment design and statistical analysis, and how these bad practices can give misleading conslusions. More particularly, we will look at the effect of __lurking variables__ and __sample size__ on p-value. After the lab, students should be able to understand at least 2 things:  
 * __Lurking Variables:__ Though it's impossible to put all lurking variables into your analysis, it's important to design an experiment in a way that some lurking variables can be minimized, and to conduct a statistical analysis with the concern that some lurking variables might impact the conclusion.  

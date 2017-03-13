@@ -1,9 +1,10 @@
 ---
-title: "LAB1"
+title: "How is T-Test Unreliable?"
 author: "Dennis Liu & Trang Nguyen"
 date: "3/6/2017"
 output: html_document
 ---
+
 ## Objective  
 This lab aims at demonstrating some bad practices of experiment design and statistical analysis, and how these bad practices can give misleading conslusions. More particularly, we will look at the effect of __lurking variables__ and __sample size__ on p-value. After the lab, students should be able to understand at least 2 things:  
 * __Lurking Variables:__ Though it's impossible to put all lurking variables into your analysis, it's important to design an experiment in a way that some lurking variables can be minimized, and to conduct a statistical analysis with the concern that some lurking variables might impact the conclusion.  
@@ -28,9 +29,8 @@ library(party)
 ## 1. Getting Data
 First, we want to import real time data from website. In order to make this dataset more dynamic for future use, we use the library __RCurl__ to import the most updated dataset into R instead of downloading the csv from the website.  
 ```{r, message=FALSE, warning=FALSE}
-library(RCurl)
-url <- "http://statgames.tietronix.com/tangrams/webreporter.php?game=tangrams&groupID=&winlose=both&random=false&rows=&type=csv"
-tangram_data <- read.csv(textConnection(readLines(url)), stringsAsFactors = F)
+
+tangram_data <- read.csv("tangrams_data.csv", stringsAsFactors = F)
 ```
 
 ## 2. Cleaning and Re-formating Data

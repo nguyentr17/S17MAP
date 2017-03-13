@@ -49,12 +49,14 @@ function(input, output) {
       height = 0.4/input$sd1
       switch(input$population2,
              "normal" = {
-            ##   hx2 <- rnorm(500, input$popu_mean2, input$sd2)
-               half_width = input$popu_mean2 + 4*input$sd2
-               height = 0.4/input$sd2
+               ##   hx2 <- rnorm(500, input$popu_mean2, input$sd2)
+               #half_width = input$popu_mean2 + 4*input$sd2
+               #height = 0.4/input$sd2
                hist(hx2(), prob = TRUE, main="Normal", cex.axis=.8, xlim=c(low_range,high_range),ylim = c(0,height), breaks=20)
                curve(dnorm(x, mean = input$popu_mean2, sd = input$sd2), 
-                     col="blue", lwd=2, add=TRUE, yaxt="n")},
+                     col="blue", lwd=2, add=TRUE, yaxt="n")
+             },
+            
              
              "skewed" = {
             ##   hx2 <- rchisq(500, df=4) + input$popu_mean2

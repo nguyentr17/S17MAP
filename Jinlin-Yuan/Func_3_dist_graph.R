@@ -1,9 +1,9 @@
-mean_norm_dist <- function(mean1, mean2, sd1, sd2, n1, n2) {
+mean_norm_dist <- function(s, mean1, mean2, sd1, sd2, n1, n2) {
   data <- vector()
   par(mar=c(2,2,2,2))
   par(mfrow = c(2,1))
-  print("Please select a distribution: ")
-  s <- readline()
+  #print("Please select a distribution: ")
+  #s <- readline()
   if (s == "normal") {
     hx1 <- rnorm(n1, mean1, sd1)
     hx2 <- rnorm(n2, mean2, sd2)
@@ -45,11 +45,12 @@ mean_norm_dist <- function(mean1, mean2, sd1, sd2, n1, n2) {
     print("Distribution not found.")
     return()
   }
-  mean_diff <- mean(hx1) - mean(hx2)
-  zscore <- (mean(hx1) - mean(hx2))/(sqrt( ((sd1)^2)/(n1) + ((sd2)^2)/(n2) ))
-  pval <- round(t.test(hx1, hx2)$p.value, digits = 3)
-  data <- c(mean_diff, zscore, pval)
+  mean_diff <- round(mean(hx1) - mean(hx2), digits = 5)
+  ttest <- t.test(hx1, hx2)
+  tscore <- round(ttest$statistic, digits = 5)
+  pval <- round(ttest$p.value, digits = 5)
   
+  data <- c(mean_diff, tscore, pval)
   
   
   # Q: overlay the two graphs or show in a column?
@@ -62,6 +63,18 @@ mean_norm_dist <- function(mean1, mean2, sd1, sd2, n1, n2) {
   #plot(hx2, col="green", type = "h", xlab = "", ylab = "",
   #     main = "normal", axes = FALSE)
   
+}
+
+three_plot <- function(reps, dist, mean1, mean2, sd1, sd2, n1, n2) {
+  data <- vector()
+  for (i in 1:reps) {
+    data <- cbind(data, mean_norm_dist(dist, mean1, mean2, sd1, sd2, n1, n2))
+  }
+  par(mfrow = c(3,1))
+  plot(data[1,], main = "Dotplot of Mean Difference")
+  plot(data[2,], main = "Dotplot of t-statistics")
+  plot(data[3,], main = "Dotplot of p-values")
+  return(data)
 }
 
 

@@ -16,20 +16,21 @@ function(input, output) {
     ## made change 1 for dynamic plotting
     low_range = min(input$popu_mean1-4*input$sd1, input$popu_mean2-4*input$sd2)
     high_range = max(input$popu_mean1+4*input$sd1, input$popu_mean2+4*input$sd2)
-    height = 0.4/input$sd1
-    half_width =  4*input$sd2
-    height2 = 0.4/input$sd2
+    height1 = max(0.01*input$sd1, 0.01*input$sd2)
+    height2 = max(0.1*input$sd1, 0.1*input$sd2)
+    half_width =  max(4*input$sd2, 4*input$sd1)
+    #height2 = 0.4/input$sd2
     switch(input$population1,
            "normal" = {
              curve(dnorm(x, mean = input$popu_mean1, sd = input$sd1),
                    xlim=c(low_range,high_range),
-                   ylim = c(0,height), 
+                   ylim = c(0,height1), 
                    col="red",  lwd=2,  yaxt="n")
              abline(v = 0)},
            
            "skewed" = {
              curve(dchisq(x, df = 4), 
-                   xlim=c(low_range,high_range), ylim = c(0,height),
+                   xlim=c(low_range,high_range), ylim = c(0,height2),
                    col="red", lwd=2,  yaxt="n")},
            
            "uniform" = {
@@ -42,7 +43,7 @@ function(input, output) {
            "normal" = {
              ##   hx2 <- rnorm(500, input$popu_mean2, input$sd2)
              curve(dnorm(x, mean = input$popu_mean2, sd = input$sd2), 
-                   xlim=c(low_range,high_range),ylim = c(0,height),
+                   xlim=c(low_range,high_range),ylim = c(0,height1),
                    col="blue", lwd=2,   yaxt="n")},
            
            "skewed" = {
@@ -50,7 +51,7 @@ function(input, output) {
              half_width = input$popu_mean2 + 4*input$sd2
              height = 0.4/input$sd2
              curve(dchisq(x, df = 4), 
-                   xlim=c(low_range,high_range), ylim = c(0,height),
+                   xlim=c(low_range,high_range), ylim = c(0,height2),
                    col="blue", lwd=2,  yaxt="n")}, 
            
            "uniform" = {

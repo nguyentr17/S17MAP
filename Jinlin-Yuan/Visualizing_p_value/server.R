@@ -31,7 +31,7 @@ function(input, output) {
                    xlim=c(low_range,high_range), ylim = c(0,height),
                    col="red", lwd=2,  yaxt="n")},
           
-           "uniform" =  {
+           "uniform" = {
              ##hx1 <- runif(500, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1)
              curve(dunif(x, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
                    xlim=c(-3,3), col="red", lwd=2,  yaxt="n")})
@@ -55,42 +55,55 @@ function(input, output) {
                    xlim=c(-3,3), col="blue", lwd=2,  yaxt="n")})
 })
 
-    data <- reactive({
-      d <- vector()
-    for (i in 1: as.numeric(input$rep)) {
-      sp1 <- sample(hx1(), input$size1, replace = FALSE, prob = NULL)
-      sp2 <- sample(hx2(), input$size2, replace = FALSE, prob = NULL)
+
+
+  data <- reactive({
+    d <- vector()
+    for (i in 1:input$rep) {
+      sp1 <- sample(hx1(), input$size1)
+      sp2 <- sample(hx2(), input$size2)
+
       mean_diff <- round(mean(sp1) - mean(sp2), digits = 5)
-      ttest <- t.test(sp1,sp2, paired = FALSE)
+      ttest <- t.test(sp1, sp2, paired = FALSE)
       tscore <- round(ttest$statistic, digits = 5)
       pval <- round(ttest$p.value, digits = 5)
       d <- cbind(d, c(mean_diff, tscore, pval))
     }
-      return(d)
+    return(d)
+  })
+
+      output$mean_diff1 <- renderPlot({
+      par(mfrow = c(1,2))
+      data <- vector()
+      data <- cbind(data, data())
+      
+      hist(data[1,], col = "plum", pch = 16, xlab = "", main = "Histogram of Mean Difference", breaks = 30)
+      abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
+      plot(data[1,], seq_along(data[1,]), col = "plum", pch = 16, xlab = "", main = "Scatterplot of t-statistics")
+      abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
+      })
+    
+    output$mean_diff2 <- renderPlot({
+      par(mfrow = c(1,2))
+      data <- vector()
+      data <- cbind(data, data())
+      
+      hist(data[2,], col = "wheat1", pch = 16, xlab = "", main = "Histogram of t-statistics", breaks = 30)
+      abline(v = (input$popu_mean1 - input$popu_mean2)/(sqrt(input$sd1 * input$sd1/input$size1 + input$sd2 * input$sd2/input$size2)), lwd = 2, col = "red")  
+      plot(data[2,], seq_along(data[2,]), col = "wheat1", pch = 16, xlab = "", main = "Scatterplot of t-statistics")
+      abline(v = (input$popu_mean1 - input$popu_mean2)/(sqrt(input$sd1 * input$sd1/input$size1 + input$sd2 * input$sd2/input$size2)), lwd = 2, col = "red")
     })
     
-    #output$test <- renderPrint(data())
-    output$mean_diff <- renderPlot({
-     ## par(mfrow = c(3,2))
-      hist(data()[1,], col = "plum", pch = 16, main = "Histogram of Mean Difference", breaks = 30)
-      abline(v = input$mean1 - input$mean2, lwd = 2, col = "red")
-      plot(data()[1,], seq_along(data[1,]), col = "plum", pch = 16, main = "Dotplot of t-statistics")
-      abline(v = input$mean1 - input$mean2, lwd = 2, col = "red")
-})
-    output$test_stats <- renderPlot({
-      hist(data()[2,], col = "wheat1", pch = 16, main = "Histogram of t-statistics", breaks = 30)
-      abline(v = (input$mean1 - input$mean2)/(sqrt(input$sd1*input$sd1/input$n1 + input$sd2*input$sd2/input$n2)), lwd = 2, col = "red")
-      plot(data()[2,], seq_along(data[2,]), col = "wheat1", pch = 16, main = "Dotplot of t-statistics")
-      abline(v = (input$mean1 - input$mean2)/(sqrt(input$sd1*input$sd1/input$n1 + input$sd2*input$sd2/input$n2)), lwd = 2, col = "red")
+    output$mean_diff3 <- renderPlot({
+      par(mfrow = c(1,2))
+      data <- vector()
+      data <- cbind(data, data())
       
-    })
-    
-    output$p_val <- renderPlot({
-      hist(data()[3,], col= "palegreen", pch = 20, main = "Histogram of p-values", breaks = 30)
+      hist(data[3,], col= "palegreen", pch = 20, xlab = "", main = "Histogram of p-values", breaks = 30)
       abline(v = 0.05, lwd = 2, col = "red")
-      plot(data()[3,], seq_along(data[3,]), col= "palegreen", pch = 20, main = "Dotplot of p-values")
+      plot(data[3,], seq_along(data[3,]), col= "palegreen", pch = 20, xlab = "", main = "Scatterplot of p-values")
       abline(v = 0.05, lwd = 2, col = "red")
-      
+
     })
     
 
@@ -102,9 +115,9 @@ function(input, output) {
   
    
     
-    sp1 <- reactive({sample(hx1(), input$size1, replace = TRUE, prob = NULL)})
-    sp2 <- reactive({sample(hx2(), input$size2, replace = TRUE, prob = NULL)})
-    output$distPlot3 <- renderPlot({
+    #sp1 <- reactive({sample(hx1(), input$size1, replace = TRUE, prob = NULL)})
+    #sp2 <- reactive({sample(hx2(), input$size2, replace = TRUE, prob = NULL)})
+    #output$distPlot3 <- renderPlot({
   
       # Try histogram 
      # hist(sp1(), col = )
@@ -112,18 +125,18 @@ function(input, output) {
      # hist(sp2())
       ## Original 
       # first plot
-   plot(seq_along(sp1()),sp1(), ylim=range(c(sp1(),sp2())), col = 'red', pch = 16, cex = 1.5)
+   #plot(seq_along(sp1()),sp1(), ylim=range(c(sp1(),sp2())), col = 'red', pch = 16, cex = 1.5)
       # second plot  EDIT: needs to have same ylim
-      par(new = TRUE)
-     plot(seq_along(sp2()),sp2(),ylim=range(c(sp1(),sp2())), axes = FALSE, xlab = "", ylab = "", col = 'blue', pch = 17, cex = 1.5)
-    })
-    output$test_stats <- renderPrint({
-     t.test(sp1(),sp2())
-    })
-    output$mean_diff <- renderText({
-      mean(sp1()) - mean(sp2())
+  #    par(new = TRUE)
+  #   plot(seq_along(sp2()),sp2(),ylim=range(c(sp1(),sp2())), axes = FALSE, xlab = "", ylab = "", col = 'blue', pch = 17, cex = 1.5)
+  #  })
+  #  output$test_stats <- renderPrint({
+  #   t.test(sp1(),sp2())
+  #  })
+  #  output$mean_diff <- renderText({
+  #    mean(sp1()) - mean(sp2())
       
-    })
+  #  })
     
 }
   

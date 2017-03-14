@@ -4,25 +4,13 @@ mean_norm_dist <- function(s, mean1, mean2, sd1, sd2, n1, n2, hx1, hx2) {
   par(mfrow = c(2,1))
   #print("Please select a distribution: ")
   #s <- readline()
-  if (s == "normal") {
-    sp1 <- sample(hx1, n1)
-    sp2 <- sample(hx2, n2)
+  sp1 <- sample(hx1, n1)
+  sp2 <- sample(hx2, n2)
     
-  } else if (s == "skewed") {
-    sp1 <- sample(hx1, n1)
-    sp2 <- sample(hx2, n2)
-    
-  } else if (s == "uniform") {
-    sp1 <- sample(hx1, n1)
-    sp2 <- sample(hx2, n2)
-    
-  } else {
-    print("Distribution not found.")
-    return()
-  }
   mean_diff <- round(mean(sp1) - mean(sp2), digits = 5)
   ttest <- t.test(sp1, sp2, paired = FALSE)
   tscore <- round(ttest$statistic, digits = 5)
+  return(tscore)
   pval <- round(ttest$p.value, digits = 5)
   
   data <- c(mean_diff, tscore, pval)

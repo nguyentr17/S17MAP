@@ -18,7 +18,8 @@ function(input, output) {
     low_range = min(input$popu_mean1-4*input$sd1, input$popu_mean2-4*input$sd2)
     high_range = max(input$popu_mean1+4*input$sd1, input$popu_mean2+4*input$sd2)
     height = 0.4/input$sd1
-
+    half_width =  4*input$sd2
+    height2 = 0.4/input$sd2
     switch(input$population1,
            "normal" = {
           ##   hx1 <- rnorm(500, input$popu_mean1, input$sd1)
@@ -65,13 +66,17 @@ function(input, output) {
     sp1 <- reactive({sample(hx1(), input$size1, replace = TRUE, prob = NULL)})
     sp2 <- reactive({sample(hx2(), input$size2, replace = TRUE, prob = NULL)})
     output$distPlot3 <- renderPlot({
-      #sp1 <- sample(hx1(), input$size1, replace = TRUE, prob = NULL)
-      #sp2 <- sample(hx2(), input$size2, replace = TRUE, prob = NULL)
+  
+      # Try histogram 
+     # hist(sp1(), col = )
+      #par(new = TRUE)
+     # hist(sp2())
+      ## Original 
       # first plot
-      plot(sp1(), seq_along(sp1()), xlim=range(c(sp1(),sp2())), col = 'red', pch = 16, cex = 1.5)
+   plot(seq_along(sp1()),sp1(), ylim=range(c(sp1(),sp2())), col = 'red', pch = 16, cex = 1.5)
       # second plot  EDIT: needs to have same ylim
       par(new = TRUE)
-      plot(sp2(), seq_along(sp2()),xlim=range(c(sp1(),sp2())), axes = FALSE, xlab = "", ylab = "", col = 'blue', pch = 17, cex = 1.5)
+     plot(seq_along(sp2()),sp2(),ylim=range(c(sp1(),sp2())), axes = FALSE, xlab = "", ylab = "", col = 'blue', pch = 17, cex = 1.5)
     })
     output$test_stats <- renderPrint({
      t.test(sp1(),sp2())

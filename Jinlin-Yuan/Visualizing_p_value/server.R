@@ -1,16 +1,16 @@
 function(input, output) {
-   hx1 <- reactive({
-     switch(input$population1,
-            "normal" = {rnorm(500, input$popu_mean1, input$sd1)}, 
-            "skewed" = {rchisq(500, df=4) + input$popu_mean1},
-            "uniform" = {runif(500, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1)})
-   })
-   hx2 <- reactive({
-     switch(input$population2,
-            "normal" = {rnorm(500, input$popu_mean2, input$sd2)},
-            "skewed" = {rchisq(500, df=4) + input$popu_mean2},
-            "uniform" = {runif(500, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2)})
-   })
+  hx1 <- reactive({
+    switch(input$population1,
+           "normal" = {rnorm(500, input$popu_mean1, input$sd1)}, 
+           "skewed" = {rchisq(500, df=4) + input$popu_mean1},
+           "uniform" = {runif(500, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1)})
+  })
+  hx2 <- reactive({
+    switch(input$population2,
+           "normal" = {rnorm(500, input$popu_mean2, input$sd2)},
+           "skewed" = {rchisq(500, df=4) + input$popu_mean2},
+           "uniform" = {runif(500, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2)})
+  })
   
   output$distPlot1 <- renderPlot({
     low_range = min(input$popu_mean1-4*input$sd1, input$popu_mean2-4*input$sd2)
@@ -32,12 +32,13 @@ function(input, output) {
                                                                  lwd=c(2.5,2.5),col=c("blue","red"))) # gives the legend lines the correct color and width)
                    },
           
+
            "skewed" = {
              curve(dchisq(x, df = 4), 
                    xlim=c(low_range,high_range), ylim = c(0,height),                   
                    ylab = "Frequency",
                    col="red", lwd=2,  yaxt="n")},
-          
+           
            "uniform" = {
              ##hx1 <- runif(500, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1)
              curve(dunif(x, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
@@ -62,9 +63,11 @@ function(input, output) {
            "uniform" = {
              ## hx2 <- runif(500, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2)
              curve(dunif(x, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2), 
+
                    xlim=c(-3,3), col="blue", lwd=2, ylab = "Frequency",
  yaxt="n")})
 })
+
 
 
 
@@ -82,6 +85,7 @@ function(input, output) {
     }
     return(d)
   })
+
 
       output$mean_diff <- renderPlot({
       par(mfrow = c(1,2))
@@ -117,35 +121,5 @@ function(input, output) {
 
     })
     
-
-  
-   
-    
-    #sp1 <- reactive({sample(hx1(), input$size1, replace = TRUE, prob = NULL)})
-    #sp2 <- reactive({sample(hx2(), input$size2, replace = TRUE, prob = NULL)})
-    #output$distPlot3 <- renderPlot({
-  
-      # Try histogram 
-     # hist(sp1(), col = )
-      #par(new = TRUE)
-     # hist(sp2())
-      ## Original 
-      # first plot
-   #plot(seq_along(sp1()),sp1(), ylim=range(c(sp1(),sp2())), col = 'red', pch = 16, cex = 1.5)
-      # second plot  EDIT: needs to have same ylim
-  #    par(new = TRUE)
-  #   plot(seq_along(sp2()),sp2(),ylim=range(c(sp1(),sp2())), axes = FALSE, xlab = "", ylab = "", col = 'blue', pch = 17, cex = 1.5)
-  #  })
-  #  output$test_stats <- renderPrint({
-  #   t.test(sp1(),sp2())
-  #  })
-
-
-    
-}
-
-  
-
-
 
 

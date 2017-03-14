@@ -22,3 +22,5 @@ interaction.plot(gender, groupname, test1$TimeUsed_log, type="b", col=c(1:3),
                  ylab="TimeUsed_log", 
                  main="Interaction Plot",legend=FALSE)
 
+
+write.csv(gen_tangram,file="gentangram.csv")

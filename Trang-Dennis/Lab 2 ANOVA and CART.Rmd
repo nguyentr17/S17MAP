@@ -4,27 +4,96 @@ author: "Trang Nguyen, Dennis Liu"
 date: "3/9/2017"
 output: html_document
 ---
+From the last lab, we saw the misunderstanding of p-value. We want to explore whether we have similar situation in the ANOVA analysis.
+The limitation of t-test is that we cannot take multiple factors into consideration. Therefore, the analysis might not be reliable due to the existence of lurking variables. Therefore, we will proceed with ANOVA to see how the conclusion changes when we put other factors besides _Gender_ into the analysis.     
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, message=FALSE, warning=FALSE}
+library(readr)
+library(dplyr) 
+library(ggplot2)
+library(data.table)
+library(gplots)
+library(party)
 ```
 
-## R Markdown
+First, we want to import data. To make sure the effectiveness of the analysis, we use the data attached the lab. 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r, message=FALSE, warning=FALSE}
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+gen_tangram <- read_csv("gentangram.csv")
+puzzlename <- c("A Nice Lighthouse", "Diamond", "House of Tangrams", "The Hook")
+gen_tangram$PuzzleName2 <- ifelse(gen_tangram$PuzzleName %in% puzzlename, gen_tangram$PuzzleName, "Others")
+gen_tangram$PuzzleName2 <- as.factor(gen_tangram$PuzzleName2)
+gen_tangram$TimeUsed_log <- log(gen_tangram$TimeUsed)
+gen_tangram$level_gender <- as.factor(gen_tangram$level_gender)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+test <- aov(TimeUsed_log ~ level_gender, data=gen_tangram)
+summary(test)
+ggplot(gen_tangram,aes(level_gender,TimeUsed_log)) +
+  geom_boxplot(varwidth = TRUE,fill = "white", colour = "#3366FF",
+               outlier.colour = "red", outlier.shape = 1) 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r, message=FALSE, warning=FALSE}
+puzzlename <- c("A Nice Lighthouse", "Diamond", "House of Tangrams", "The Hook")
+gen_tangram$PuzzleName2 <- ifelse(gen_tangram$PuzzleName %in% puzzlename, gen_tangram$PuzzleName, "Others")
+gen_tangram$PuzzleName2 <- as.factor(gen_tangram$PuzzleName2)
+
+```
+> Question1: Consider the dataset we have, is there a difference between gender? 
+
+We want to conduct a two-way anova test.
+
+```{r}
+test <- aov(TimeUsed_log ~ level_gender * PuzzleName2,data=gen_tangram)
+summary(test)
+pd = position_dodge(.2)
+
+ggplot(gen_tangram,aes(PuzzleName2,TimeUsed_log)) +
+  geom_boxplot(aes(fill=level_gender),colour = "#3366FF",
+               outlier.colour = "red", outlier.shape = 1) 
+
+interaction.plot(gen_tangram$level_gender, gen_tangram$PuzzleName2, gen_tangram$TimeUsed_log, type="b", col=c(1:3), 
+  	leg.bty="o", leg.bg="beige", lwd=2, pch=c(18,24,22),	
+   xlab="Gender", 
+   ylab="Puzzle", 
+   main="Interaction Plot")
+```
+
+> Question 2: Through the p-value of this anova test, we can conclude that there are difference between different gender. However, can we conclude that that conclusion can apply to any puzzle we have. In another words, does the conclusion derived from a big dataset apply to small subsets?  
+
+When we take a look at the "A Nice Lighthouse"
+```{r}
+light <- filter(gen_tangram,PuzzleName2 == "A Nice Lighthouse")
+test.light <- aov(TimeUsed_log ~ level_gender, data=light)
+summary(test.light)
+ggplot(light,aes(level_gender,TimeUsed_log)) +
+  geom_boxplot(varwidth = TRUE,fill = "white", colour = "#3366FF",
+               outlier.colour = "red", outlier.shape = 1)
+```
+We find out that there us no gender difference. No, which one should we trust. The big dataset or the small group within the big dataset. 
+
+> Practice Question
+Find one more group with no gender difference and one group with gender difference. 
+
+Is there an easier way to find those relationships? Or should we just keep trying when we have encountered one of those situations. 
+
+Classification tree can help us with that situation.
+
+```{r}
+fit <- ctree(TimeUsed_log ~ HintsUsed+HintsEnabled, 
+   data=na.omit(gen_tangram))
+plot(fit)
+```
+
+The graph above is a simple classification tree. The first node here means that there is a difference between those people who actually use hints and those who don't. The second node means that within those who don't use hints; there is a difference between those people who enable the hint and those who don't. 
+
+Within one graph, we can explore those relationship clearly!
+
+> Practice Question
+Draw a classification tree which will help you with the previous practice questions. 
+(hint: A tree related to puzzlename and gender)
+

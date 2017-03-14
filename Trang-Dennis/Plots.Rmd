@@ -9,15 +9,9 @@ First, we want to import real time data from website. For the future convinence,
 library(treemap)
 library(dplyr) 
 library(mosaic)
-library(ggplot2)lib
+library(ggplot2)
 library(data.table)
 library(gplots)
-
-if (!require("devtools")) install.packages("devtools")
-devtools::install_github("ropensci/plotly")
-
-library(plotly)
-
 tangrams_data <- fread("http://statgames.tietronix.com/tangrams/webreporter.php?game=tangrams&GroupName=&winlose=both&random=false&rows=&type=csv")
 tangrams_data$HintsEnabled <- as.factor(tangrams_data$HintsEnabled)
 tangrams_data$HintsUsed <- as.factor(tangrams_data$HintsUsed)

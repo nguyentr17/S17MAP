@@ -44,9 +44,9 @@ three_plots <- function(reps, dist, mean1, mean2, sd1, sd2, n1, n2) {
   plot(data[1,], seq_along(data[1,]), col = "plum", pch = 16, main = "Dotplot of t-statistics")
   abline(v = mean1 - mean2, lwd = 2, col = "red")
   
-  hist(data[2,], col = "wheat1", pch = 16, main = "Dotplot of t-statistics", breaks = 30)
+  hist(data[2,], col = "gold", pch = 16, main = "Dotplot of t-statistics", breaks = 30)
   abline(v = (mean1 - mean2)/(sqrt(sd1*sd1/n1 + sd2*sd2/n2)), lwd = 2, col = "red")  
-  plot(data[2,], seq_along(data[2,]), col = "wheat1", pch = 16, main = "Dotplot of t-statistics")
+  plot(data[2,], seq_along(data[2,]), col = "gold", pch = 16, main = "Dotplot of t-statistics")
   abline(v = (mean1 - mean2)/(sqrt(sd1*sd1/n1 + sd2*sd2/n2)), lwd = 2, col = "red")
   
   hist(data[3,], col= "palegreen", pch = 20, main = "Dotplot of p-values", breaks = 30)

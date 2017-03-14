@@ -23,23 +23,32 @@ function(input, output) {
              curve(dnorm(x, mean = input$popu_mean1, sd = input$sd1),
                    xlim=c(low_range,high_range),
                    ylim = c(0,height), 
-                   col="red",  lwd=2,  yaxt="n")
-                   abline(v = 0)},
+                   ylab = "Frequency",
+                   col="red",  lwd=2,  yaxt="n", legend = legend(5,0, # places a legend at the appropriate place 
+                                                                 c("Health","Defense"), # puts text in the legend
+                                                                 
+                                                                 lty=c(1,1), # gives the legend appropriate symbols (lines)
+                                                                 
+                                                                 lwd=c(2.5,2.5),col=c("blue","red"))) # gives the legend lines the correct color and width)
+                   },
           
            "skewed" = {
              curve(dchisq(x, df = 4), 
-                   xlim=c(low_range,high_range), ylim = c(0,height),
+                   xlim=c(low_range,high_range), ylim = c(0,height),                   
+                   ylab = "Frequency",
                    col="red", lwd=2,  yaxt="n")},
           
            "uniform" = {
              ##hx1 <- runif(500, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1)
              curve(dunif(x, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
+                   ylab = "Frequency",
                    xlim=c(-3,3), col="red", lwd=2,  yaxt="n")})
     par(new = TRUE);
     switch(input$population2,
            "normal" = {
              curve(dnorm(x, mean = input$popu_mean2, sd = input$sd2), 
                    xlim=c(low_range,high_range),ylim = c(0,height),
+                   ylab = "Frequency",
                    col="blue", lwd=2,   yaxt="n")},
            
            "skewed" = {
@@ -47,12 +56,14 @@ function(input, output) {
              height = 0.4/input$sd2
              curve(dchisq(x, df = 4), 
                    xlim=c(low_range,high_range), ylim = c(0,height),
+                   ylab = "Frequency",
                    col="blue", lwd=2,  yaxt="n")}, 
            
            "uniform" = {
              ## hx2 <- runif(500, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2)
              curve(dunif(x, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2), 
-                   xlim=c(-3,3), col="blue", lwd=2,  yaxt="n")})
+                   xlim=c(-3,3), col="blue", lwd=2, ylab = "Frequency",
+ yaxt="n")})
 })
 
 
@@ -72,18 +83,18 @@ function(input, output) {
     return(d)
   })
 
-      output$mean_diff1 <- renderPlot({
+      output$mean_diff <- renderPlot({
       par(mfrow = c(1,2))
       data <- vector()
       data <- cbind(data, data())
       
       hist(data[1,], col = "plum", pch = 16, xlab = "", main = "Histogram of Mean Difference", breaks = 30)
       abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
-      plot(data[1,], seq_along(data[1,]), col = "plum", pch = 16, xlab = "", main = "Scatterplot of t-statistics")
+      plot(data[1,], seq_along(data[1,]), col = "plum", pch = 16, xlab = "", main = "Scatterplot of Mean Difference")
       abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
       })
     
-    output$mean_diff2 <- renderPlot({
+    output$test_stats <- renderPlot({
       par(mfrow = c(1,2))
       data <- vector()
       data <- cbind(data, data())
@@ -94,7 +105,7 @@ function(input, output) {
       abline(v = (input$popu_mean1 - input$popu_mean2)/(sqrt(input$sd1 * input$sd1/input$size1 + input$sd2 * input$sd2/input$size2)), lwd = 2, col = "red")
     })
     
-    output$mean_diff3 <- renderPlot({
+    output$p_val <- renderPlot({
       par(mfrow = c(1,2))
       data <- vector()
       data <- cbind(data, data())
@@ -107,11 +118,6 @@ function(input, output) {
     })
     
 
-    #plot(data[1,], col = "red", pch = 16, main = "Dotplot of t-statistics")
-    #plot(data[2,], col = "blue", pch = 16, main = "Dotplot of t-statistics")
-    #plot(data[3,], col= "green", pch = 20, main = "Dotplot of p-values")
-    #return(data)
-  
   
    
     
@@ -133,31 +139,12 @@ function(input, output) {
   #  output$test_stats <- renderPrint({
   #   t.test(sp1(),sp2())
   #  })
-  #  output$mean_diff <- renderText({
-  #    mean(sp1()) - mean(sp2())
-      
-  #  })
+
+
     
 }
-  
-  
-  ##  mean_diff <- mean(hx1) - mean(hx2)
-  ##  zscore <- (mean(hx1) - mean(hx2))/(sqrt( ((sd1)^2)/(n1) + ((sd2)^2)/(n2) ))
-  ##pval <- round(t.test(hx1, hx2)$p.value, digits = 3)
-  ##data <- c(mean_diff, zscore, pval)
-  
-  
-  
-  # Q: overlay the two graphs or show in a column?
-  
 
-  #plot(hx1, col="red", type = "h", xlab = "", ylab = "",
-  #     main = "normal", axes = FALSE)
   
-  #plot(hx2, col="green", type = "h", xlab = "", ylab = "",
-  #     main = "normal", axes = FALSE)
-  
-
 
 
 

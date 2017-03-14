@@ -20,6 +20,7 @@ fluidPage(
                    label = 'Standard diviation',
                    10,
                 min = -100, max = 100),
+      
       selectInput(inputId='population2', 
                   label = 'population2',
                   choice = c('normal','skewed','uniform')

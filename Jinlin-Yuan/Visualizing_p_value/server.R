@@ -13,7 +13,6 @@ function(input, output) {
    })
   
   output$distPlot1 <- renderPlot({
-    ## made change 1 for dynamic plotting
     low_range = min(input$popu_mean1-4*input$sd1, input$popu_mean2-4*input$sd2)
     high_range = max(input$popu_mean1+4*input$sd1, input$popu_mean2+4*input$sd2)
     height = 0.4/input$sd1
@@ -37,16 +36,13 @@ function(input, output) {
              curve(dunif(x, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
                    xlim=c(-3,3), col="red", lwd=2,  yaxt="n")})
     par(new = TRUE);
-    
     switch(input$population2,
            "normal" = {
-             ##   hx2 <- rnorm(500, input$popu_mean2, input$sd2)
              curve(dnorm(x, mean = input$popu_mean2, sd = input$sd2), 
                    xlim=c(low_range,high_range),ylim = c(0,height),
                    col="blue", lwd=2,   yaxt="n")},
            
            "skewed" = {
-             ##   hx2 <- rchisq(500, df=4) + input$popu_mean2
              half_width = input$popu_mean2 + 4*input$sd2
              height = 0.4/input$sd2
              curve(dchisq(x, df = 4), 
@@ -61,7 +57,7 @@ function(input, output) {
 
     data <- reactive({
       d <- vector()
-    for (i in 1:input$rep) {
+    for (i in 1: as.numeric(input$rep)) {
       sp1 <- sample(hx1(), input$size1, replace = FALSE, prob = NULL)
       sp2 <- sample(hx2(), input$size2, replace = FALSE, prob = NULL)
       mean_diff <- round(mean(sp1) - mean(sp2), digits = 5)
@@ -72,26 +68,31 @@ function(input, output) {
     }
       return(d)
     })
-     output$test <- renderPrint(data())
+    
+    #output$test <- renderPrint(data())
     output$mean_diff <- renderPlot({
-      par(mfrow = c(3,2))
+     ## par(mfrow = c(3,2))
       hist(data()[1,], col = "plum", pch = 16, main = "Histogram of Mean Difference", breaks = 30)
-      abline(v = mean1 - mean2, lwd = 2, col = "red")
+      abline(v = input$mean1 - input$mean2, lwd = 2, col = "red")
       plot(data()[1,], seq_along(data[1,]), col = "plum", pch = 16, main = "Dotplot of t-statistics")
-      abline(v = mean1 - mean2, lwd = 2, col = "red")
-      
+      abline(v = input$mean1 - input$mean2, lwd = 2, col = "red")
+})
+    output$test_stats <- renderPlot({
       hist(data()[2,], col = "wheat1", pch = 16, main = "Histogram of t-statistics", breaks = 30)
-      abline(v = (mean1 - mean2)/(sqrt(sd1*sd1/n1 + sd2*sd2/n2)), lwd = 2, col = "red")  
+      abline(v = (input$mean1 - input$mean2)/(sqrt(input$sd1*input$sd1/input$n1 + input$sd2*input$sd2/input$n2)), lwd = 2, col = "red")
       plot(data()[2,], seq_along(data[2,]), col = "wheat1", pch = 16, main = "Dotplot of t-statistics")
-      abline(v = (mean1 - mean2)/(sqrt(sd1*sd1/n1 + sd2*sd2/n2)), lwd = 2, col = "red")
+      abline(v = (input$mean1 - input$mean2)/(sqrt(input$sd1*input$sd1/input$n1 + input$sd2*input$sd2/input$n2)), lwd = 2, col = "red")
       
+    })
+    
+    output$p_val <- renderPlot({
       hist(data()[3,], col= "palegreen", pch = 20, main = "Histogram of p-values", breaks = 30)
       abline(v = 0.05, lwd = 2, col = "red")
       plot(data()[3,], seq_along(data[3,]), col= "palegreen", pch = 20, main = "Dotplot of p-values")
       abline(v = 0.05, lwd = 2, col = "red")
       
-      
     })
+    
 
     #plot(data[1,], col = "red", pch = 16, main = "Dotplot of t-statistics")
     #plot(data[2,], col = "blue", pch = 16, main = "Dotplot of t-statistics")

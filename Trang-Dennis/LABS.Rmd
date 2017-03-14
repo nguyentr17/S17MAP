@@ -265,6 +265,7 @@ ggplot(diamond,aes(level_gender,TimeUsed_log)) +
                outlier.colour = "red", outlier.shape = 1)
 ```
 
+
 ### Classification Tree
 How can we find those groups with different outcomes. __classification tree__ is a good tool to visualize those groups. A decision tree to help you to find out different outcomes from different groups at once. For example, if we want to see whether there is a difference between hints-enabled and hints-disabled. We use __ctree__ from __party__ package. 
 

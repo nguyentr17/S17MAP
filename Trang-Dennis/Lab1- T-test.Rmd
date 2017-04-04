@@ -2,7 +2,9 @@
 title: 'Lab 1: How is T-test Unreliable?'
 author: "Trang Nguyen, Dennis Liu"
 date: "3/9/2017"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 
@@ -17,8 +19,8 @@ This lab series, which consists of 3 labs, aims at demonstrating some bad practi
 ### Outline:
 * __Lab 1__: How is T-test Unreliable?  
 This lab will show the impact of data cleaning on statistical conclusions and how t-tests can give dramatically different conclusions for the same question.   
-* __Lab 2__: ANOVA vs. CART Analysis  
-* __Lab 3__: ANOVA vs. Random Forest  
+* __Lab 2__: ANOVA  
+* __Lab 3__: CART analysis  
 
 
 ## Background: 
@@ -220,5 +222,6 @@ ggplot(gender_samplingdis, aes(log_timeused_mean, fill = level_gender)) +
   ylim(0.00, 1.00)
 ```
 
-
+# Take-away Lesson  
+This lab demonstrates some questions you need to ask yourself when conducting t-test and interpreting its results. In several cases, especially when you analyze data without a good understanding of the design of experiments, T-test can lead to some unreliable conclusions. Fortunately, there are some good alternatives to t-test. One of the most common options is *ANOVA*. The second lab (*Lab 02: ANOVA*) will use *ANOVA* to analyze the same data and demonstrate how this technique can give a more thorough analysis of our data.   
 

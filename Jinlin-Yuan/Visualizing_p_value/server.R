@@ -1,117 +1,110 @@
 function(input, output) {
-   hx1 <- reactive({
-     switch(input$population1,
-            "normal" = {rnorm(500, input$popu_mean1, input$sd1)},
-            "skewed" = {rchisq(500, df=4) + input$popu_mean1},
-            "uniform" = {runif(500, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1)})
-   })
-   hx2 <- reactive({
-     switch(input$population2,
-            "normal" = {rnorm(500, input$popu_mean2, input$sd2)},
-            "skewed" = {rchisq(500, df=4) + input$popu_mean2},
-            "uniform" = {runif(500, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2)})
-   })
-  
+  hx1 <- reactive({
+    switch(input$population1,
+           "normal" = {rnorm(5000, input$popu_mean1, input$sd1)}, 
+           "skewed" = {rchisq(5000, df=4) + input$popu_mean1},
+           "uniform" = {runif(5000, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1)})
+  })
+  hx2 <- reactive({
+    switch(input$population2,
+           "normal" = {rnorm(5000, input$popu_mean2, input$sd2)},
+           "skewed" = {rchisq(5000, df=4) + input$popu_mean2},
+           "uniform" = {runif(5000, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2)})
+  })
   
   output$distPlot1 <- renderPlot({
     ## made change 1 for dynamic plotting
     low_range = min(input$popu_mean1-4*input$sd1, input$popu_mean2-4*input$sd2)
     high_range = max(input$popu_mean1+4*input$sd1, input$popu_mean2+4*input$sd2)
-    height = 0.4/input$sd1
-
+    height1 = max(0.4/input$sd1, 0.4/input$sd2)
+    height2 = max(0.1*input$sd1, 0.1*input$sd2)
+    half_width =  max(4*input$sd2, 4*input$sd1)
+    #height2 = 0.4/input$sd2
     switch(input$population1,
            "normal" = {
-          ##   hx1 <- rnorm(500, input$popu_mean1, input$sd1)
-             hist(hx1(), prob = TRUE, main="Normal", cex.axis=.8, 
-                  ## made changes 2
-                  xlim=c(low_range,high_range),
-                  ylim = c(0,height), 
-                  breaks=20)
-             curve(dnorm(x, mean = input$popu_mean1, sd = input$sd1), 
-                   col="red", lwd=2, add=TRUE, yaxt="n")
-           },
-           "skewed" = {
-             ##hx1 <- rchisq(500, df=4) + input$popu_mean1
-             hist(hx1(), prob = TRUE, main="Skewed", cex.axis=.8, xlim=c(low_range,high_range), ylim = c(0,height),breaks=20)
-             curve(dchisq(x, df = 4), 
-                   col="red", lwd=2, add=TRUE, yaxt="n")     
-           },
-           "uniform" =  {
-             ##hx1 <- runif(500, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1)
-             hist(hx1(), prob = TRUE, main="Uniform", cex.axis=.8, xlim=c(-3,3), breaks=20)
-             curve(dunif(x, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1), 
-                   col="red", lwd=2, add=TRUE, yaxt="n")
-           }
+             curve(dnorm(x, mean = input$popu_mean1, sd = input$sd1),
+                   xlim=c(low_range,high_range),
+                   ylim = c(0,height1), 
+                   col="red",  lwd=2,  yaxt="n",
+                   ylab="")},
            
-    )
-    output$distPlot2 <- renderPlot({
-      half_width =  4*input$sd1
-      height = 0.4/input$sd1
-      switch(input$population2,
-             "normal" = {
-            ##   hx2 <- rnorm(500, input$popu_mean2, input$sd2)
-               half_width = input$popu_mean2 + 4*input$sd2
-               height = 0.4/input$sd2
-               hist(hx2(), prob = TRUE, main="Normal", cex.axis=.8, xlim=c(low_range,high_range),ylim = c(0,height), breaks=20)
-               curve(dnorm(x, mean = input$popu_mean2, sd = input$sd2), 
-                     col="blue", lwd=2, add=TRUE, yaxt="n")},
-             
-             "skewed" = {
-            ##   hx2 <- rchisq(500, df=4) + input$popu_mean2
-               half_width = input$popu_mean2 + 4*input$sd2
-               height = 0.4/input$sd2
-               hist(hx2(), prob = TRUE, main="Skewed", cex.axis=.8, xlim=c(low_range,high_range), ylim = c(0,height),breaks=20)
-               curve(dchisq(x, df = 4), 
-                     col="blue", lwd=2, add=TRUE, yaxt="n")}, 
-             
-             "uniform" = {
-              ## hx2 <- runif(500, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2)
-               hist(hx2(), prob = TRUE, main="Uniform", cex.axis=.8, xlim=c(-3,3), breaks=20)
-               curve(dunif(x, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2), 
-                     col="blue", lwd=2, add=TRUE, yaxt="n")}
-      )
-    })
+           "skewed" = {
+             curve(dchisq(x, df = 4), 
+                   xlim=c(low_range,high_range), ylim = c(0,height2),
+                   col="red", lwd=2,  yaxt="n")},
+           
+           "uniform" = {
+             ##hx1 <- runif(500, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1)
+             curve(dunif(x, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
+                   xlim=c(-3,3), col="red", lwd=2,  yaxt="n")})
+    par(new = TRUE);
     
-    sp1 <- reactive({sample(hx1(), input$size1, replace = TRUE, prob = NULL)})
-    sp2 <- reactive({sample(hx2(), input$size2, replace = TRUE, prob = NULL)})
-    output$distPlot3 <- renderPlot({
-      #sp1 <- sample(hx1(), input$size1, replace = TRUE, prob = NULL)
-      #sp2 <- sample(hx2(), input$size2, replace = TRUE, prob = NULL)
-      # first plot
-      plot(sp1(), seq_along(sp1()), xlim=range(c(sp1(),sp2())), col = 'red', pch = 16, cex = 1.5)
-      # second plot  EDIT: needs to have same ylim
-      par(new = TRUE)
-      plot(sp2(), seq_along(sp2()),xlim=range(c(sp1(),sp2())), axes = FALSE, xlab = "", ylab = "", col = 'blue', pch = 17, cex = 1.5)
-    })
-    output$test_stats <- renderPrint({
-     t.test(sp1(),sp2())
-    })
-    output$mean_diff <- renderText({
-      mean(sp1()) - mean(sp2())
-      
-    })
-    
+    switch(input$population2,
+           "normal" = {
+             ##   hx2 <- rnorm(500, input$popu_mean2, input$sd2)
+             curve(dnorm(x, mean = input$popu_mean2, sd = input$sd2), 
+                   xlim=c(low_range,high_range),ylim = c(0,height1),
+                   col="blue", lwd=2,   yaxt="n")},
+           
+           "skewed" = {
+             ##   hx2 <- rchisq(500, df=4) + input$popu_mean2
+             half_width = input$popu_mean2 + 4*input$sd2
+             height = 0.4/input$sd2
+             curve(dchisq(x, df = 4), 
+                   xlim=c(low_range,high_range), ylim = c(0,height2),
+                   col="blue", lwd=2,  yaxt="n")}, 
+           
+           "uniform" = {
+             ## hx2 <- runif(500, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2)
+             curve(dunif(x, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2), 
+                   xlim=c(-3,3), col="blue", lwd=2,  yaxt="n")})
   })
   
+  data <- reactive({
+    d <- vector()
+    for (i in 1:input$rep) {
+      sp1 <- sample(hx1(), input$size1)
+      sp2 <- sample(hx2(), input$size2)
+      mean_diff <- round(mean(sp1) - mean(sp2), digits = 5)
+      ttest <- t.test(sp1, sp2, paired = FALSE)
+      tscore <- round(ttest$statistic, digits = 5)
+      pval <- round(ttest$p.value, digits = 5)
+      d <- cbind(d, c(mean_diff, tscore, pval))
+    }
+    return(d)
+  })
+  # output$test <- renderPrint(data())
+  output$mean_diff1 <- renderPlot({
+    par(mfrow = c(1,2))
+    data <- vector()
+    data <- cbind(data, data())
+    
+    hist(data[1,], col = "plum", pch = 16, xlab = "", main = "Histogram of Mean Difference", breaks = 100)
+    abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
+    
+    plot(data[1,], seq_along(data[1,]), col = "plum", pch = 16, xlab = "", main = "Scatterplot of Mean Difference")
+    abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
+  })
   
-  ##  mean_diff <- mean(hx1) - mean(hx2)
-  ##  zscore <- (mean(hx1) - mean(hx2))/(sqrt( ((sd1)^2)/(n1) + ((sd2)^2)/(n2) ))
-  ##pval <- round(t.test(hx1, hx2)$p.value, digits = 3)
-  ##data <- c(mean_diff, zscore, pval)
+  output$mean_diff2 <- renderPlot({
+    par(mfrow = c(1,2))
+    data <- vector()
+    data <- cbind(data, data())
+    
+    hist(data[2,], col = "wheat1", pch = 16, xlab = "", main = "Histogram of t-statistics", breaks = 100)
+    abline(v = (input$popu_mean1 - input$popu_mean2)/(sqrt(input$sd1 * input$sd1/input$size1 + input$sd2 * input$sd2/input$size2)), lwd = 2, col = "red")  
+    plot(data[2,], seq_along(data[2,]), col = "wheat1", pch = 16, xlab = "", main = "Scatterplot of t-statistics")
+    abline(v = (input$popu_mean1 - input$popu_mean2)/(sqrt(input$sd1 * input$sd1/input$size1 + input$sd2 * input$sd2/input$size2)), lwd = 2, col = "red")
+  })
   
-  
-  
-  # Q: overlay the two graphs or show in a column?
-  
-
-  #plot(hx1, col="red", type = "h", xlab = "", ylab = "",
-  #     main = "normal", axes = FALSE)
-  
-  #plot(hx2, col="green", type = "h", xlab = "", ylab = "",
-  #     main = "normal", axes = FALSE)
-  
+  output$mean_diff3 <- renderPlot({
+    par(mfrow = c(1,2))
+    data <- vector()
+    data <- cbind(data, data())
+    
+    hist(data[3,], col= "palegreen", pch = 20, xlab = "", main = "Histogram of p-values", breaks = 100)
+    abline(v = 0.05, lwd = 2, col = "red")
+    plot(data[3,], seq_along(data[3,]), col= "palegreen", pch = 20, xlab = "", main = "Scatterplot of p-values")
+    abline(v = 0.05, lwd = 2, col = "red")
+  })
 }
-
-
-
-

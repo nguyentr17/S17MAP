@@ -75,36 +75,27 @@ function(input, output) {
   })
   # output$test <- renderPrint(data())
   output$mean_diff1 <- renderPlot({
-    par(mfrow = c(1,2))
     data <- vector()
     data <- cbind(data, data())
     
     hist(data[1,], col = "plum", pch = 16, xlab = "", main = "Histogram of Mean Difference", breaks = 100)
     abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
     
-    plot(data[1,], seq_along(data[1,]), col = "plum", pch = 16, xlab = "", main = "Scatterplot of Mean Difference")
-    abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
-  })
+ })
   
   output$mean_diff2 <- renderPlot({
-    par(mfrow = c(1,2))
     data <- vector()
     data <- cbind(data, data())
     
     hist(data[2,], col = "wheat1", pch = 16, xlab = "", main = "Histogram of t-statistics", breaks = 100)
     abline(v = (input$popu_mean1 - input$popu_mean2)/(sqrt(input$sd1 * input$sd1/input$size1 + input$sd2 * input$sd2/input$size2)), lwd = 2, col = "red")  
-    plot(data[2,], seq_along(data[2,]), col = "wheat1", pch = 16, xlab = "", main = "Scatterplot of t-statistics")
-    abline(v = (input$popu_mean1 - input$popu_mean2)/(sqrt(input$sd1 * input$sd1/input$size1 + input$sd2 * input$sd2/input$size2)), lwd = 2, col = "red")
-  })
+ })
   
   output$mean_diff3 <- renderPlot({
-    par(mfrow = c(1,2))
     data <- vector()
     data <- cbind(data, data())
     
     hist(data[3,], col= "palegreen", pch = 20, xlab = "", main = "Histogram of p-values", breaks = 100)
-    abline(v = 0.05, lwd = 2, col = "red")
-    plot(data[3,], seq_along(data[3,]), col= "palegreen", pch = 20, xlab = "", main = "Scatterplot of p-values")
     abline(v = 0.05, lwd = 2, col = "red")
   })
 }

@@ -3,8 +3,9 @@ title: 'Lab 1: How is T-test Unreliable?'
 author: "Trang Nguyen, Dennis Liu"
 date: "3/9/2017"
 output:
-  word_document: default
+  pdf_document: default
   html_document: default
+  word_document: default
 ---
 
 

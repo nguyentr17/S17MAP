@@ -41,20 +41,14 @@ fluidPage(
                    10,
                    min = -100, max = 100),
       selectInput(inputId='rep', 
-<<<<<<< HEAD
+
               label = 'Number of Samples Drawn',
               choice = c(100,200,500,1000,2000,5000))),
-     
-=======
-                  label = 'Number of Samples',
-                  choice = c(100,200,500,1000,2000,5000))),
     
->>>>>>> 15b9cfa27f2909f81b4c69430ebcff011d9ded70
     
     mainPanel(
       plotOutput("distPlot1"),
       ## Made changes: plotted seperately
-<<<<<<< HEAD
 
       plotOutput("mean_diff"),
       plotOutput("test_stats"),
@@ -63,18 +57,8 @@ fluidPage(
      # verbatimTextOutput("test_stats"),
      textOutput("test")
     )
-
-    ))
-=======
-      plotOutput("mean_diff1"),
-      plotOutput("mean_diff2"),
-      plotOutput("mean_diff3")
-      #   plotOutput("distPlot3"),
-      # verbatimTextOutput("test_stats"),
-      #   textOutput("test")
-    )
-    
   ))
->>>>>>> 15b9cfa27f2909f81b4c69430ebcff011d9ded70
+
+    
 
 

@@ -4,33 +4,32 @@ author: "Jinlin He, Yuan Wang"
 date: "February 13, 2017"
 output: html_document
 ---
-//////////////search for packages to easy format .rmd
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ## Objective
-In order to better understand the meaning of a p-value, we are going to compare multiple studies that all conducted similar tests.
+
+In order to better understand the meaning of a p-value, we are going to compare the p-values of multiple studies that all conducted similar tests.
 
 ## Data 
 
-*Need to add more explanation of the game and a screenshot of the game webpage*
+Shapesplosion is an online game in which the player is required to place specifically shaped pegs into the appropriate holes within a short time period. For several years students have used the Shapesplosion game to design an experiment and collect data. 
+*The link to the game: (http://web.grinnell.edu/individuals/kuipers/stat2labs/Perfection.html). *
 
-Shapesplosion is an on-line game in which a person is expected to place specifically shaped pegs into the appropriate holes within a short time period. For several years students have used the Shapesplosion game to design an experiment and collect data. The following link allows you to play the game (http://web.grinnell.edu/individuals/kuipers/stat2labs/Perfection.html). 
+Here is a screenshot of the start page for the players can choose their preferred game settings. The game also allows researchers to create additional variables of their design. As shown below, "Gender" can be added as a factor of interest in this way.  
 
-Here is a screenshot of the start page where the users can choose their preferred settings for the game.
+![](GamesSetting.png)
 
-![](Shapesplosion.png)
-
-
-In this lab, we will review data from multiple student groups that focused on a specific research question:
+Here is a screenshot of the game interface:
+![](Shapesplosion2.png)
+In this lab, we focus on data collected from experiments that have added "Gender" as a factor of interest. Thus, these data can be used to address a specific research question:
 
 > “Does gender affect the time used to play Shapesplosion game?”
 
-## Part One
-////////////Note 
-### Conducting a hypothesis test on the overall dataset
+## Part One: Conducting hypothesis test on the overall dataset
 
-We will start our analysis with one study that is based on the entire sample. The following code will import your data and conduct a two-sample t-test.
+We will start our analysis by running a two-sample t-test on the entire sample. The following code will import your data and conduct test.
 
 ```{r,results='hide', message=FALSE}
 library(mosaic)
@@ -51,12 +50,13 @@ t_test<- t.test(male,female,alternative="two.sided")
 t_test
 ```
 
-> Question 1: Use the code below to create a dotplot and boxplot of the data. Does it seem reasonable to use a two sample t-test for this data?  
+###Question 1: Use the code below to create a dotplot and boxplot of the data. Does it seem reasonable to use a two sample t-test for this data?  
+
+*Recall on one of the assumptions we made before conducting a two-sample t-test is the equal variance for both groups. 
 
 ```{r graph1}
 group_data$gender= as.factor(group_data$gender)
 ggplot(data=group_data, aes(x=gender, y=TimeUsedSec)) + geom_boxplot()  + aes(colour=gender) + theme(legend.position="right") + labs(title="Figure 1: boxplot of full dataset") +   stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3)
-## Set figure size
 ```
 
 
@@ -131,8 +131,8 @@ In Part 1 of this activity, you compared two different studies that evaluated th
 
 ```{r plot, echo=TRUE}
 ### Add margin to add titles
-par(mar=c(2,2,2,2))
-par(mfrow = c(4,5))
+par(mar=c(1,1,3,1))
+par(mfrow = c(3,6))
 groupName <- c()
 pvalues <- c()
 
@@ -151,22 +151,22 @@ for (i in 1:length(selected_groupID)) {
     data1 <- group_data[group_data$groupID == selected_groupID[i],]
     if (p < 0.1) {
       if (mean(female) < mean(male)) {
-        boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+        boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ",\n pval=", p),cex.main=0.8, cex.axis = 0.7, names = c("F", "M"), ylab="Time Used Seconds")
       } else {
-        boxplot(TimeUsedSec ~ gender,data=data1, col="red", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+        boxplot(TimeUsedSec ~ gender,data=data1, col="red", cex.main=0.8, cex.axis = 0.7,names = c("F", "M"), main=paste("n=", dim(data1)[1], ",\n pval=", p), ylab="Time Used Seconds")
       }
     } else {
-      boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+      boxplot(TimeUsedSec ~ gender,data=data1,names = c("F", "M"), cex.main=0.8,cex.axis = 0.7,main=paste("n=", dim(data1)[1], ",\n pval=", p),  ylab="Time Used Seconds")
     }
   }
 }
 
-mtext("Figure 4", outer=TRUE,  cex=1, line=-1)
+mtext("Fig.4", outer=TRUE,  cex=0.7, line=-1)
 
 ```
 
 
-Figure 4 is a graphical representation of all 18 groups from the group dataset. The colored boxplots have p-value < 0.1.
+Fig.4 is a graphical representation of all 18 groups from the group dataset. The colored boxplots have p-value < 0.1.
 
 
 > Question 1: What is the range of p-values observed in these studies?

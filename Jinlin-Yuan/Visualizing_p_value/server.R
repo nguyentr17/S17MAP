@@ -92,7 +92,7 @@ function(input, output) {
       data <- vector()
       data <- cbind(data, data())
       
-      hist(data[1,], col = "plum", pch = 16, xlab = "", main = "Histogram of Mean Difference", breaks = 30)
+      hist(data[1,], col = "plum", pch = 16, xlab = "", main = "Histogram of Mean Difference", breaks = 100)
       abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
       plot(data[1,], seq_along(data[1,]), col = "plum", pch = 16, xlab = "", main = "Scatterplot of Mean Difference")
       abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
@@ -103,7 +103,7 @@ function(input, output) {
       data <- vector()
       data <- cbind(data, data())
       
-      hist(data[2,], col = "wheat1", pch = 16, xlab = "", main = "Histogram of t-statistics", breaks = 30)
+      hist(data[2,], col = "wheat1", pch = 16, xlab = "", main = "Histogram of t-statistics", breaks = 100)
       abline(v = (input$popu_mean1 - input$popu_mean2)/(sqrt(input$sd1 * input$sd1/input$size1 + input$sd2 * input$sd2/input$size2)), lwd = 2, col = "red")  
       plot(data[2,], seq_along(data[2,]), col = "wheat1", pch = 16, xlab = "", main = "Scatterplot of t-statistics")
       abline(v = (input$popu_mean1 - input$popu_mean2)/(sqrt(input$sd1 * input$sd1/input$size1 + input$sd2 * input$sd2/input$size2)), lwd = 2, col = "red")
@@ -120,6 +120,7 @@ function(input, output) {
       abline(v = 0.05, lwd = 2, col = "red")
 
     })
+    }
     
 
 

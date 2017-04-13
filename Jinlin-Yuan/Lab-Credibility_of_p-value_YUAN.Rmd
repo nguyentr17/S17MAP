@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 ## Objective
 In statistical hypothesis testing, many researchers use **p-value** as a measure of how strong/significant the results are such that the null hypothesis is true, i.e. the level of significance of the evidence in showing if there is a mean difference. However, without the understanding of the meaning of p-value and adequate prudence, people could falsely use p-value in scientific research that leads to misleading conclusions. John P. A. Ioannidis (2005) frankly expressed her concern in her paper [Why Most Published Research Findings Are False](http://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.0020124) that "...simulations show that for most study designs and settings, it is more likely for a research claim to be false than true...it can be proven that most claimed research findings are false."
@@ -140,7 +140,7 @@ group_data$gender <- as.factor(group_data$gender)
 In Part 1 of this activity, we compared two different studies that evaluated the effect of gender on completion time of the shapesplosion game. Several additional studies on gender were conducted by multiple groups over multiple years. The following code conducts t-test and creates boxplots for several of these groups.
 
 
-```{r plot, echo=TRUE, fig.height=20, fig.width=30}
+```{r plot, echo=TRUE}
 ### Add margin to add titles
 par(mar=c(2,2,2,2))
 par(mfrow = c(4,5))
@@ -162,12 +162,12 @@ for (i in 1:length(selected_groupID)) {
     data1 <- group_data[group_data$groupID == selected_groupID[i],]
     if (p < 0.1) {
       if (mean(female) < mean(male)) {
-        boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+        boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ",p=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
       } else {
-        boxplot(TimeUsedSec ~ gender,data=data1, col="red", main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+        boxplot(TimeUsedSec ~ gender,data=data1, col="red", main=paste("n=", dim(data1)[1], ",p=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
       }
     } else {
-      boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ", pval=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+      boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ",p=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
     }
   }
 }

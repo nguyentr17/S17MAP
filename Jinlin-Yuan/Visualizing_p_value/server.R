@@ -79,49 +79,49 @@ function(input, output) {
     #height2 = 0.4/input$sd2
     switch(input$population1,
            "normal" = {
-            g <- ggplot(data.frame(x = c(low_range, high_range)), aes(x)) + 
-                 stat_function(fun = dnorm, args = list(mean = input$popu_mean1, sd = input$sd1), 
-                               colour = "red")
-            },
-             
+             g <- ggplot(data.frame(x = c(low_range, high_range)), aes(x)) + 
+               stat_function(fun = dnorm, args = list(mean = input$popu_mean1, sd = input$sd1), 
+                             colour = "red")
+           },
+           
            "skewed" = {
-            g <- ggplot(data.frame(x = c(low_range, high_range)), aes(x)) +
-                 stat_function(fun = dchisq, args = list(df = input$sd1, ncp = input$popu_mean1),
-                               colour = "red")},
-            #curve(dchisq(x, df = 4), 
-            #       xlim=c(low_range,high_range), ylim = c(0,height2),
-            #       col="red", lwd=2,  yaxt="n",
-            #       ylab="")},
+             g <- ggplot(data.frame(x = c(low_range, high_range)), aes(x)) +
+               stat_function(fun = dchisq, args = list(df = input$sd1, ncp = input$popu_mean1),
+                             colour = "red")},
+           #curve(dchisq(x, df = 4), 
+           #       xlim=c(low_range,high_range), ylim = c(0,height2),
+           #       col="red", lwd=2,  yaxt="n",
+           #       ylab="")},
            
            "uniform" = {
-            g <- ggplot(data.frame(x = c(low_range, high_range)), aes(x)) +
-                stat_function(fun = dunif, 
-                            args = list(min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
-                            colour = "red")})
-             
-            #curve(dunif(x, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
-            #       xlim=c(-3,3), col="red", lwd=2,  yaxt="n", ylab="")})
+             g <- ggplot(data.frame(x = c(low_range, high_range)), aes(x)) +
+               stat_function(fun = dunif, 
+                             args = list(min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
+                             colour = "red")})
+    
+    #curve(dunif(x, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
+    #       xlim=c(-3,3), col="red", lwd=2,  yaxt="n", ylab="")})
     #par(new = TRUE);
     
     switch(input$population2,
            "normal" = {
-            g + stat_function(fun = dnorm, args = list(mean = input$popu_mean2, sd = input$sd2),
-                              colour = "blue")},
+             g + stat_function(fun = dnorm, args = list(mean = input$popu_mean2, sd = input$sd2),
+                               colour = "blue")},
            
            "skewed" = {
              #curve(dchisq(x, df = 4), 
              #     xlim=c(low_range,high_range), ylim = c(0,height2),
              #          col="blue", lwd=2,  yaxt="n", ylab="")}, 
-            g + stat_function(fun = dchisq, args = list(df = input$sd2, ncp = input$popu_mean2), 
-                              colour = "blue")},
+             g + stat_function(fun = dchisq, args = list(df = input$sd2, ncp = input$popu_mean2), 
+                               colour = "blue")},
            
            "uniform" = {
-            g + stat_function(fun = dunif, 
-                              args = list(min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2),
-                              colour = "blue")})
-            
-            #curve(dunif(x, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2), 
-            #       xlim=c(-3,3), col="blue", lwd=2,  yaxt="n", ylab="")})
+             g + stat_function(fun = dunif, 
+                               args = list(min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2),
+                               colour = "blue")})
+    
+    #curve(dunif(x, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2), 
+    #       xlim=c(-3,3), col="blue", lwd=2,  yaxt="n", ylab="")})
   })
   
   data <- reactive({

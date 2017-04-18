@@ -2,7 +2,7 @@ library(shinydashboard)
 library(ggplot2)
 
 dashboardPage(
-  dashboardHeader(title = "Visualizing two-sample t-test"),
+  dashboardHeader(title = "Visualizing two-sample t-test", titleWidth = 280),
   dashboardSidebar(  
     #sidebarPanel(
     

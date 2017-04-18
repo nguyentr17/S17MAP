@@ -77,7 +77,6 @@ function(input, output) {
     "})
   
   output$distPlot1 <- renderPlot({
-    ## made change 1 for dynamic plotting
     low_range = min(input$popu_mean1-4*input$sd1, input$popu_mean2-4*input$sd2)
     high_range = max(input$popu_mean1+4*input$sd1, input$popu_mean2+4*input$sd2)
     height1 = max(0.4/input$sd1, 0.4/input$sd2)
@@ -85,7 +84,6 @@ function(input, output) {
     half_width =  max(4*input$sd2, 4*input$sd1)
     
     
-    #height2 = 0.4/input$sd2
     switch(input$population1,
            "normal" = {
              g <- ggplot(data.frame(x = c(low_range, high_range)), aes(x)) + 
@@ -96,41 +94,32 @@ function(input, output) {
            "skewed" = {
              g <- ggplot(data.frame(x = c(low_range, high_range)), aes(x)) +
                stat_function(fun = dchisq, args = list(df = input$sd1, ncp = input$popu_mean1),
-                             colour = "red")},
-           #curve(dchisq(x, df = 4), 
-           #       xlim=c(low_range,high_range), ylim = c(0,height2),
-           #       col="red", lwd=2,  yaxt="n",
-           #       ylab="")},
+                             colour = "red")
+           },
            
            "uniform" = {
              g <- ggplot(data.frame(x = c(low_range, high_range)), aes(x)) +
                stat_function(fun = dunif, 
                              args = list(min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
-                             colour = "red")})
-    
-    #curve(dunif(x, min = input$popu_mean1 - input$sd1, max = input$popu_mean1 + input$sd1),
-    #       xlim=c(-3,3), col="red", lwd=2,  yaxt="n", ylab="")})
-    #par(new = TRUE);
+                             colour = "red")
+           })
     
     switch(input$population2,
            "normal" = {
              g + stat_function(fun = dnorm, args = list(mean = input$popu_mean2, sd = input$sd2),
-                               colour = "blue")},
+                               colour = "blue")
+           },
            
            "skewed" = {
-             #curve(dchisq(x, df = 4), 
-             #     xlim=c(low_range,high_range), ylim = c(0,height2),
-             #          col="blue", lwd=2,  yaxt="n", ylab="")}, 
              g + stat_function(fun = dchisq, args = list(df = input$sd2, ncp = input$popu_mean2), 
-                               colour = "blue")},
+                               colour = "blue")
+           },
            
            "uniform" = {
              g + stat_function(fun = dunif, 
                                args = list(min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2),
-                               colour = "blue")})
-    
-    #curve(dunif(x, min = input$popu_mean2 - input$sd2, max = input$popu_mean2 + input$sd2), 
-    #       xlim=c(-3,3), col="blue", lwd=2,  yaxt="n", ylab="")})
+                               colour = "blue")
+           })
   })
   
   data <- reactive({
@@ -142,23 +131,24 @@ function(input, output) {
       ttest <- t.test(sp1, sp2, paired = FALSE)
       tscore <- round(ttest$statistic, digits = 5)
       pval <- round(ttest$p.value, digits = 5)
-      d <- cbind(d, c(mean_diff, tscore, pval, sp1, sp2))
+      d <- cbind(d, c(mean_diff, tscore, pval))
     }
     return(d)
   })
   
   output$sample_dist <- renderPlot({
+    height1 <- max(0.5 * input$size1, 0.5/input$size2)
     data <- vector()
-    data <- cbind(data, data())
-    samp1 <- data.frame(sample = (data[4,]))
-    samp2 <- data.frame(sample = (data[5,]))
+    sp1 <- sample(hx1(), input$size1)
+    sp2 <- sample(hx2(), input$size2)
+    samp1 <- data.frame(title = sp1)
+    samp2 <- data.frame(title = sp2)
     samp1$pop <- "1"
     samp2$pop <- "2"
     h <- rbind(samp1, samp2)
-    ggplot(h, aes(sample, fill = pop)) + geom_density(alpha = 0.2)
+    ggplot(h, aes(x = title, fill = pop)) + geom_dotplot(binwidth=1, alpha = 0.7) + ylim(0, height1)
   })
   
-  # output$test <- renderPrint(data())
   output$mean_diff1 <- renderPlot({
     data <- vector()
     data <- cbind(data, data())

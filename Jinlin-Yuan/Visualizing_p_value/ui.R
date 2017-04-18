@@ -4,13 +4,10 @@ library(ggplot2)
 dashboardPage(
   dashboardHeader(title = "Visualizing two-sample t-test", titleWidth = 280),
   dashboardSidebar(  
-    #sidebarPanel(
-    
     sidebarMenuOutput("menu"),
-    
     sliderInput("slider", "Number of trials:", 20, 5000, 1000),
-    
-    htmlOutput("text")),
+    htmlOutput("text")
+    ),
   
   
   dashboardBody(

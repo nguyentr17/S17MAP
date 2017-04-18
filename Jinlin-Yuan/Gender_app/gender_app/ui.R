@@ -1,6 +1,8 @@
 library(shinydashboard)
 library(ggplot2)
 library(shiny)
+library(dplyr)
+
 
 dashboardPage(skin = "green",
               dashboardHeader(
@@ -8,25 +10,36 @@ dashboardPage(skin = "green",
                 titleWidth = 350),
               
               dashboardSidebar(
-                #sidebarMenu(
-                #  menuItem("Group ID", tabName = "group", icon = icon("dashboard"))
-                #)
                 fileInput('datafile', 'Choose CSV file',
                           accept=c('text/csv', 'text/comma-separated-values,text/plain')),
-                uiOutput("select1")
+                menuItemOutput("menu"),
+                htmlOutput("text")
               ),
               
               dashboardBody(
-                fluidRow(
-                  box(title = "Boxplot of gender",
-                      width = 8,
-                      solidHeader = TRUE,
-                      plotOutput("plot1", height = 500),
-                      status = "success"),
-                  valueBoxOutput("pval"),
-                  valueBoxOutput("num")
-                  
-                  
+                tabItems(
+                  tabItem(tabName = "item1",
+                          fluidRow(
+                            box(title = "Boxplot of gender",
+                                width = 8,
+                                solidHeader = TRUE,
+                                plotOutput("plot1", height = 500),
+                                status = "success"),
+                            valueBoxOutput("pval1"),
+                            valueBoxOutput("num1")
+                          )
+                  ),
+                  tabItem(tabName = "item2",
+                          fluidRow(
+                            box(title = "Boxplot of gender",
+                                width = 8,
+                                solidHeader = TRUE,
+                                plotOutput("plot2", height = 500),
+                                status = "success"),
+                            valueBoxOutput("pval2"),
+                            valueBoxOutput("num2")
+                          )
+                  )
                 )
               )
 )

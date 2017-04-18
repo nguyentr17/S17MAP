@@ -66,6 +66,15 @@ function(input, output) {
       ))
   })
   
+  output$text <- renderText({"
+    <div style='padding: 0.5em 1em 0.5em 1em'>
+    Copyright to <b>Yuan Wang<b>
+    </div>
+    
+    <div style='padding: 0.5em 1em 0.5em 1em'>
+    <a>Grinnell College<a>
+    </div>
+    "})
   
   output$distPlot1 <- renderPlot({
     ## made change 1 for dynamic plotting

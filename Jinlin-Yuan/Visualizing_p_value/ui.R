@@ -7,7 +7,10 @@ dashboardPage(
     #sidebarPanel(
     
     sidebarMenuOutput("menu"),
-    sliderInput("slider", "Number of trials:", 20, 5000, 1000)),
+    
+    sliderInput("slider", "Number of trials:", 20, 5000, 1000),
+    
+    htmlOutput("text")),
   
   
   dashboardBody(

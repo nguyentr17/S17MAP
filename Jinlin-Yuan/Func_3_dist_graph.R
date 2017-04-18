@@ -10,7 +10,6 @@ mean_norm_dist <- function(s, mean1, mean2, sd1, sd2, n1, n2, hx1, hx2) {
   mean_diff <- round(mean(sp1) - mean(sp2), digits = 5)
   ttest <- t.test(sp1, sp2, paired = FALSE)
   tscore <- round(ttest$statistic, digits = 5)
-  return(tscore)
   pval <- round(ttest$p.value, digits = 5)
   
   data <- c(mean_diff, tscore, pval)

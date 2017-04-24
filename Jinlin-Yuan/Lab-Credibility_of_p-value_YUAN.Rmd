@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 ## Objective
 
@@ -144,7 +144,7 @@ group_data$gender <- as.factor(group_data$gender)
 In Part 1 of this activity, we compared two different studies that evaluated the effect of gender on completion time of the shapesplosion game. Several additional studies on gender were conducted by multiple groups over multiple years. The following code conducts t-test and creates boxplots for several of these groups.
 
 
-```{r plot, echo=TRUE, fig.height=20, fig.width=30}
+```{r plot, echo=TRUE}
 ### Add margin to add titles
 par(mar=c(1,1,3,1))
 par(mfrow = c(3,6))
@@ -166,12 +166,21 @@ for (i in 1:length(selected_groupID)) {
     data1 <- group_data[group_data$groupID == selected_groupID[i],]
     if (p < 0.1) {
       if (mean(female) < mean(male)) {
+<<<<<<< HEAD:Jinlin-Yuan/Lab-Credibility_of_p-value.Rmd
         boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ",\n pval=", p),cex.main=0.8, cex.axis = 0.7, names = c("F", "M"), ylab="Time Used Seconds")
       } else {
         boxplot(TimeUsedSec ~ gender,data=data1, col="red", cex.main=0.8, cex.axis = 0.7,names = c("F", "M"), main=paste("n=", dim(data1)[1], ",\n pval=", p), ylab="Time Used Seconds")
       }
     } else {
       boxplot(TimeUsedSec ~ gender,data=data1,names = c("F", "M"), cex.main=0.8,cex.axis = 0.7,main=paste("n=", dim(data1)[1], ",\n pval=", p),  ylab="Time Used Seconds")
+=======
+        boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ",p=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+      } else {
+        boxplot(TimeUsedSec ~ gender,data=data1, col="red", main=paste("n=", dim(data1)[1], ",p=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+      }
+    } else {
+      boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ",p=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+>>>>>>> 43713604d24d534567224cd0ccdfb3d365184f5a:Jinlin-Yuan/Lab-Credibility_of_p-value_YUAN.Rmd
     }
   }
 }

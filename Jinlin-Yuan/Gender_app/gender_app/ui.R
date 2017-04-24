@@ -1,24 +1,35 @@
+library(shinydashboard)
+library(ggplot2)
 library(shiny)
 
-# Define UI for application that draws a histogram
-shinyUI(fluidPage(
-  
-  # Application title
-  titlePanel("Old Faithful Geyser Data"),
-  
-  # Sidebar with a slider input for number of bins 
-  sidebarLayout(
-    sidebarPanel(
-       sliderInput("bins",
-                   "Number of bins:",
-                   min = 1,
-                   max = 50,
-                   value = 30)
-    ),
-    
-    # Show a plot of the generated distribution
-    mainPanel(
-       plotOutput("distPlot")
-    )
-  )
-))
+dashboardPage(skin = "green",
+              dashboardHeader(
+                title = "Shapesplosion: two sample t-test",
+                titleWidth = 350),
+              
+              dashboardSidebar(
+                #sidebarMenu(
+                #  menuItem("Group ID", tabName = "group", icon = icon("dashboard"))
+                #)
+                fileInput('datafile', 'Choose CSV file',
+                          accept=c('text/csv', 'text/comma-separated-values,text/plain')),
+                uiOutput("select1")
+              ),
+              
+              dashboardBody(
+                fluidRow(
+                  box(title = "Boxplot of gender",
+                      width = 8,
+                      solidHeader = TRUE,
+                      plotOutput("plot1", height = 500),
+                      status = "success"),
+                  valueBoxOutput("pval"),
+                  valueBoxOutput("num")
+                  
+                  
+                )
+              )
+)
+
+
+

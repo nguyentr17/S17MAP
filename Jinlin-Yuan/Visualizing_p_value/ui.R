@@ -26,23 +26,31 @@ dashboardPage(
       )),
     
     fluidRow(
-      box(
-        title = "Histogram of Mean Differences",
-        width = 4,
-        status = "primary",
-        plotOutput("mean_diff1", height = 250)
+      tabBox(
+        title = "",
+        selected = "Mean Differences",
+        tabPanel("Mean Differences",
+                 plotOutput("mean_diff1", height = 250)),
+        tabPanel("t-statistics",
+                 plotOutput("mean_diff2", height = 250))
       ),
+    # box(
+    #    title = "Histogram of Mean Differences",
+    #    width = 4,
+    #    status = "primary",
+    #    plotOutput("mean_diff1", height = 250)
+    #  ),
       
-      box(
-        title = "Histogram of t-statistics",
-        width = 4,
-        status = "primary",
-        plotOutput("mean_diff2", height = 250)
-      ),
+    #  box(
+    #   title = "Histogram of t-statistics",
+    #    width = 4,
+    #    status = "primary",
+    #    plotOutput("mean_diff2", height = 250)
+    #  ),
       
       box(
         title = "Histogram of p-values",
-        width = 4,
+        width = 6,
         #width = NULL,
         status = "primary",
         plotOutput("mean_diff3", height = 250)

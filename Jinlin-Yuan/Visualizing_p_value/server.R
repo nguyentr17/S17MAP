@@ -159,9 +159,9 @@ function(input, output) {
       ttest <- t.test(sp1, sp2, paired = FALSE, conf.level = 1 - input$alpha)
       tscore <- round(ttest$statistic, digits = 5)
       pval <- round(ttest$p.value, digits = 5)
-      confidence_l <- round((ttest$conf)[1])
-      confidence_l <- round((ttest$conf)[1])
-      d <- cbind(d, c(mean_diff, tscore, pval))
+      reject <- FALSE
+      if (pval < input$alpha) {reject <- TRUE}
+      d <- cbind(d, c(mean_diff, tscore, pval, reject))
     }
     return(d)
   })
@@ -196,7 +196,7 @@ function(input, output) {
               breaks = input$slider1,
               plot = FALSE)
     cuts <- cut(h$breaks, c(-Inf, t_dist[1] * denominator, t_dist[2] * denominator, Inf))
-    plot(h, xlab = "", ylab = "", main = paste("Mean Difference = ", input$popu_mean1 - input$popu_mean2),
+    plot(h, xlab = "", ylab = "", main = paste("Mean Difference = ", input$popu_mean1 - input$popu_mean2, ", red = reject"),
          col = c("red", "plum", "red")[cuts])
     #abline(v = input$popu_mean1 - input$popu_mean2, lwd = 2, col = "red")
     
@@ -210,7 +210,7 @@ function(input, output) {
     h <- hist(data[2,], col = "wheat1", pch = 16, 
               breaks = input$slider1, plot = FALSE) 
     cuts <- cut(h$breaks, c(-Inf, t_dist[1], t_dist[2], Inf))
-    plot(h, xlab = "", ylab = "", main = NULL, 
+    plot(h, xlab = "", ylab = "", main = "red = reject", 
          col = c("red", "wheat1", "red")[cuts])
     #abline(v = c(t_dist[1], t_dist[2]), lwd = c(2, 2), col = c("red", "red"))
   })
@@ -219,10 +219,16 @@ function(input, output) {
     data <- vector()
     data <- cbind(data, data())
     
+    reject <- length(which(data == TRUE))
+    power <- 0
+    
+    if (abs(input$popu_mean1 - input$popu_mean2) > 0) {power <- round(reject / input$slider, digits = 5)}
+    else {power <- round((input$slider - reject) / input$slider, digits = 5)}
+    
     h <- hist(data[3,], col= "palegreen", pch = 20, 
               breaks = input$slider1, plot = FALSE)
     cuts <- cut(h$breaks, c(-Inf, input$alpha, Inf))
-    plot(h, xlab = "", ylab = "", main = paste("alpha = ", input$alpha), 
+    plot(h, xlab = "", ylab = "", main = paste("alpha = ", input$alpha, ", power = ", power), 
          col = c("red", "palegreen")[cuts])
     #abline(v = input$alpha, lwd = 2, col = "red")
   })

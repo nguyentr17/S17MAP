@@ -29,7 +29,24 @@ function(input, output) {
         ), tabName = "item1"),
         convertMenuItem(menuItem("Random", tabName = "item2", 
                                  icon = icon("cog", lib = "glyphicon"),
-                                 sliderInput("slider", "Sample size:", 5, 516, 30)),
+                                 menuSubItem(
+                                   icon = NULL,
+                                   sliderInput("slider", "Sample size:", 5, 516, 30)
+                                 ),
+                                 menuSubItem(
+                                   icon = NULL,
+                                   sliderInput("trial", "Number of trials:", 20, 5000, 1000)
+                                 ),
+                                 menuSubItem(
+                                   icon = NULL,
+                                   numericInput("alpha", "Alpha Level",
+                                                0.05,
+                                                min = 0, max = 1)
+                                 ),
+                                 menuSubItem(
+                                   icon = NULL,
+                                   actionButton("action", "Run")
+                                 )),
                         tabName = "item2")
       )
     }
@@ -147,6 +164,43 @@ function(input, output) {
     } else {
       n <- dim(data2)[1]
       valueBox(n, "Sample size", color = "blue")
+    }
+  })
+  
+  d <- eventReactive(input$action, {
+    data <- filedata()
+    if (is.null(data)) {
+      return(NULL)
+    } else {
+      d <- vector()
+      for (i in 1:input$trial) {
+        data3 <- data[sample(nrow(data), input$slider), ]
+          #sample_n(data, input$slider)
+        female <- data3[data3$gender == 0,]$TimeUsedSec
+        male <- data3[data3$gender == 1,]$TimeUsedSec
+        mean_diff <- round(mean(female) - mean(male), digits = 5)
+        ttest <- t.test(male, female, paired = FALSE, conf.level = 1 - input$alpha)
+        tscore <- round(ttest$statistic, digits = 5)
+        pval <- round(ttest$p.value, digits = 5)
+        d <- cbind(d, c(mean_diff, tscore, pval))
+
+      }
+      return(d)
+    }
+  })
+  
+  output$p_dist <- renderPlot({
+    data <- filedata()
+    if (is.null(data)) {
+      return(NULL)
+    } else {
+      d <- vector()
+      d <- cbind(d, d())
+      h <- hist(d[3,], col= "palegreen", pch = 20, 
+                breaks = 80, plot = FALSE)
+      cuts <- cut(h$breaks, c(-Inf, input$alpha, Inf))
+      plot(h, xlab = "", ylab = "", main = paste("alpha = ", input$alpha), 
+           col = c("red", "palegreen")[cuts])
     }
   })
 }

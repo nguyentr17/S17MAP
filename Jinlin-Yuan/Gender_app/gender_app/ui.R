@@ -32,12 +32,17 @@ dashboardPage(skin = "green",
                   tabItem(tabName = "item2",
                           fluidRow(
                             box(title = "Boxplot of gender",
-                                width = 8,
+                                width = 6,
                                 solidHeader = TRUE,
                                 plotOutput("plot2", height = 500),
                                 status = "success"),
                             valueBoxOutput("pval2"),
-                            valueBoxOutput("num2")
+                            valueBoxOutput("num2"),
+                            box(title = "Histogram of pvalues",
+                                width = 6,
+                                solidHeader = TRUE,
+                                plotOutput("p_dist", height = 256),
+                                status = "primary")
                           )
                   )
                 )

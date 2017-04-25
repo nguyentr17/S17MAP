@@ -75,8 +75,9 @@ function(input, output) {
         geom_boxplot() +
         aes(colour = gender) +
         theme(legend.position="right") +
-        labs(title="0 = Female, 1 = Male") +
-        stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3)
+        stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3) +
+       scale_colour_discrete(name="Gender",labels=c("Female", "Male"))+
+        scale_x_discrete(labels=c("Female", "Male"))
     }
   })
   
@@ -134,8 +135,10 @@ function(input, output) {
         geom_boxplot() +
         aes(colour = gender) +
         theme(legend.position="right") +
-        labs(title="0 = Female, 1 = Male") +
-        stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3)
+        stat_summary(fun.y = mean, geom = "point", pch = 8, cex = 3) +
+      scale_colour_discrete(name="Gender",labels=c("Female", "Male")) +
+      scale_x_discrete(labels=c("Female", "Male"))
+      
     }
   })
   

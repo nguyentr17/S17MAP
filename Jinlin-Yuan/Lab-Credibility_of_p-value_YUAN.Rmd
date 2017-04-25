@@ -12,6 +12,7 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 ## Objective
+
 In statistical hypothesis testing, many researchers use **p-value** as a measure of how strong/significant the results are such that the null hypothesis is true, i.e. the level of significance of the evidence in showing if there is a mean difference. However, without the understanding of the meaning of p-value and adequate prudence, people could falsely use p-value in scientific research that leads to misleading conclusions. John P. A. Ioannidis (2005) frankly expressed her concern in her paper [Why Most Published Research Findings Are False](http://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.0020124) that "...simulations show that for most study designs and settings, it is more likely for a research claim to be false than true...it can be proven that most claimed research findings are false."
 
 This lab aims to walk through a series of studies that all conduct similar tests but yielding various results, such that students can understand how p-value changes with the sample even with exactly the same population. 
@@ -38,11 +39,14 @@ Here are two screenshot of the game where the users can choose their preferred s
 ![](Shapesplosion.png){width=400 height=400}
 ![](Variable.png){width=200 height=400}
 
-In this lab, we will review data from multiple student groups that focused on a specific research question:
+Here is a screenshot of the game interface:
+![](Shapesplosion2.png)
+In this lab, we focus on data collected from experiments that have added "Gender" as a factor of interest. Thus, these data can be used to address a specific research question:
 
 *“Does gender affect the time used to play Shapesplosion game?”*
 
 ***
+
 
 ## A preliminary study
 
@@ -142,8 +146,8 @@ In Part 1 of this activity, we compared two different studies that evaluated the
 
 ```{r plot, echo=TRUE}
 ### Add margin to add titles
-par(mar=c(2,2,2,2))
-par(mfrow = c(4,5))
+par(mar=c(1,1,3,1))
+par(mfrow = c(3,6))
 groupName <- c()
 pvalues <- c()
 
@@ -162,22 +166,31 @@ for (i in 1:length(selected_groupID)) {
     data1 <- group_data[group_data$groupID == selected_groupID[i],]
     if (p < 0.1) {
       if (mean(female) < mean(male)) {
+<<<<<<< HEAD:Jinlin-Yuan/Lab-Credibility_of_p-value.Rmd
+        boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ",\n pval=", p),cex.main=0.8, cex.axis = 0.7, names = c("F", "M"), ylab="Time Used Seconds")
+      } else {
+        boxplot(TimeUsedSec ~ gender,data=data1, col="red", cex.main=0.8, cex.axis = 0.7,names = c("F", "M"), main=paste("n=", dim(data1)[1], ",\n pval=", p), ylab="Time Used Seconds")
+      }
+    } else {
+      boxplot(TimeUsedSec ~ gender,data=data1,names = c("F", "M"), cex.main=0.8,cex.axis = 0.7,main=paste("n=", dim(data1)[1], ",\n pval=", p),  ylab="Time Used Seconds")
+=======
         boxplot(TimeUsedSec ~ gender,data=data1, col="green", main=paste("n=", dim(data1)[1], ",p=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
       } else {
         boxplot(TimeUsedSec ~ gender,data=data1, col="red", main=paste("n=", dim(data1)[1], ",p=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
       }
     } else {
       boxplot(TimeUsedSec ~ gender,data=data1, main=paste("n=", dim(data1)[1], ",p=", p), xlab="Gender (1=Male, 0=Female)", ylab="Time Used Seconds")
+>>>>>>> 43713604d24d534567224cd0ccdfb3d365184f5a:Jinlin-Yuan/Lab-Credibility_of_p-value_YUAN.Rmd
     }
   }
 }
 
-mtext("Figure 4", outer=TRUE,  cex=1, line=-1)
+mtext("Fig.4", outer=TRUE,  cex=0.7, line=-1)
 
 ```
 
 
-Figure 4 is a graphical representation of all 18 groups from the group dataset. The colored boxplots have p-value < 0.1.
+Fig.4 is a graphical representation of all 18 groups from the group dataset. The colored boxplots have p-value < 0.1.
 
 
 **Question 4**: *What is the range of p-values observed in these studies?*

@@ -242,4 +242,4 @@ function(input, output) {
     
     #abline(v = input$alpha, lwd = 2, col = "red")
   })
-}
+  }

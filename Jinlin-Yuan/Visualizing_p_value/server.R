@@ -221,15 +221,25 @@ function(input, output) {
     
     reject <- length(which(data == TRUE))
     power <- 0
+    type1error <- 0
+  
+    if (abs(input$popu_mean1 - input$popu_mean2) > 0) {
+      power <- round(reject / input$slider, digits = 5)
+      h <- hist(data[3,], col= "palegreen", pch = 20, 
+                breaks = input$slider1, plot = FALSE)
+      cuts <- cut(h$breaks, c(-Inf, input$alpha, Inf))
+      plot(h, xlab = "", ylab = "", main = paste("alpha = ", input$alpha, ", power = ", power), 
+           col = c("red", "palegreen")[cuts])
+      }
+    else {
+      type1error <- round(reject / input$slider, digits = 5)
+      h <- hist(data[3,], col= "palegreen", pch = 20, 
+                breaks = input$slider1, plot = FALSE)
+      cuts <- cut(h$breaks, c(-Inf, input$alpha, Inf))
+      plot(h, xlab = "", ylab = "", main = paste("alpha = ", input$alpha, ", Type I Error = ", type1error), 
+           col = c("red", "palegreen")[cuts])}
     
-    if (abs(input$popu_mean1 - input$popu_mean2) > 0) {power <- round(reject / input$slider, digits = 5)}
-    else {power <- round((input$slider - reject) / input$slider, digits = 5)}
     
-    h <- hist(data[3,], col= "palegreen", pch = 20, 
-              breaks = input$slider1, plot = FALSE)
-    cuts <- cut(h$breaks, c(-Inf, input$alpha, Inf))
-    plot(h, xlab = "", ylab = "", main = paste("alpha = ", input$alpha, ", power = ", power), 
-         col = c("red", "palegreen")[cuts])
     #abline(v = input$alpha, lwd = 2, col = "red")
   })
 }

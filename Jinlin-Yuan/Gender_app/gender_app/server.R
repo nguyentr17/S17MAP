@@ -146,13 +146,17 @@ function(input, output) {
     } else {
       female <- data2[data2$gender == 0,]$TimeUsedSec
       male <- data2[data2$gender == 1,]$TimeUsedSec
-      
-      p <- round(t.test(female, male)$p.value, digits = 3)
-      
-      if (p < 0.1) {
-        valueBox(p, "P-value", icon = icon("thumbs-up", lib = "glyphicon"), color = "red")
+      if (length(female) <= 1 || length(male) <= 1) {
+        valueBox("N/A", "P-value", icon = icon("list"), color = "black")
       } else {
-        valueBox(p, "P-value", color = "yellow")
+        
+        p <- round(t.test(female, male)$p.value, digits = 3)
+        
+        if (p < 0.1) {
+          valueBox(p, "P-value", icon = icon("thumbs-up", lib = "glyphicon"), color = "red")
+        } else {
+          valueBox(p, "P-value", color = "yellow")
+        }
       }
     }
   })
@@ -175,15 +179,18 @@ function(input, output) {
       d <- vector()
       for (i in 1:input$trial) {
         data3 <- data[sample(nrow(data), input$slider), ]
-          #sample_n(data, input$slider)
+        #sample_n(data, input$slider)
         female <- data3[data3$gender == 0,]$TimeUsedSec
         male <- data3[data3$gender == 1,]$TimeUsedSec
-        mean_diff <- round(mean(female) - mean(male), digits = 5)
-        ttest <- t.test(male, female, paired = FALSE, conf.level = 1 - input$alpha)
-        tscore <- round(ttest$statistic, digits = 5)
-        pval <- round(ttest$p.value, digits = 5)
-        d <- cbind(d, c(mean_diff, tscore, pval))
-
+        if (length(female) <= 1 || length(male) <= 1) { }
+        else {
+          mean_diff <- round(mean(female) - mean(male), digits = 5)
+          ttest <- t.test(male, female, paired = FALSE, conf.level = 1 - input$alpha)
+          tscore <- round(ttest$statistic, digits = 5)
+          pval <- round(ttest$p.value, digits = 5)
+          d <- cbind(d, c(mean_diff, tscore, pval))
+        }
+        
       }
       return(d)
     }
